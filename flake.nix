@@ -11,17 +11,46 @@
       python = pkgs.python3Packages;
     in
     {
-      packages.${system}.default = python.buildPythonApplication {
-        pname = "sck";
-        version = "0";
-        src = ./.;
-        pyproject = true;
-        build-system = [
-          python.setuptools
-        ];
-        dependencies = [
-          python.python-dotenv
-        ];
+      packages.${system} = rec {
+        default = sck;
+        sck = python.buildPythonApplication {
+          pname = "sck";
+          version = "0";
+          src = ./.;
+          pyproject = true;
+          build-system = [ python.setuptools ];
+          dependencies = [ python.python-dotenv ];
+        };
+      };
+      devShells.${system} = rec {
+        default = sck;
+        sck = pkgs.mkShell {
+          packages = [
+            pkgs.clamav
+            pkgs.python3
+          ];
+
+          shellHook = ''
+            export CLAMAV_DB="$PWD/.clamav"
+
+            mkdir -p "$CLAMAV_DB"
+
+            if ! compgen -G "$CLAMAV_DB/*.cvd" > /dev/null &&
+               ! compgen -G "$CLAMAV_DB/*.cld" > /dev/null; then
+
+              cat > "$CLAMAV_DB/freshclam.conf" <<EOF
+            DatabaseDirectory $CLAMAV_DB
+            DatabaseOwner $(id -un)
+            UpdateLogFile $CLAMAV_DB/freshclam.log
+            PidFile $CLAMAV_DB/freshclam.pid
+            DatabaseMirror database.clamav.net
+            EOF
+
+              echo "ClamAV database not found; downloading it..."
+              freshclam --config-file="$CLAMAV_DB/freshclam.conf"
+            fi
+          '';
+        };
       };
     };
 }

@@ -55,9 +55,13 @@ def extract_links(html: str) -> list[str]:
         html,
     )
 
-if __name__ == "__main__":
+
+def main():
     path = sys.argv[1]
     with open(path, "rb") as file:
         data = file.read()
 
     print(parse_eml(data))
+
+if __name__ == "__main__":
+    main()

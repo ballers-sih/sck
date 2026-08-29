@@ -54,6 +54,10 @@ def scan_url(url: str) -> tuple:
     }
 
 
-if __name__ == "__main__":
+def main():
     url = sys.argv[1]
     print(scan_url(url))
+
+
+if __name__ == "__main__":
+    main()
