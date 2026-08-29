@@ -1,6 +1,7 @@
 [project]
 name = "sck"
 version = "0"
+dependencies = ["python-dotenv"]
 
 [build-system]
 requires = ["setuptools"]
