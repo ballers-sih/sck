@@ -23,6 +23,13 @@
             python.python-dotenv
             python.torch
             python.transformers
+            python.pyqt6
+          ];
+          nativeBuildInputs = [
+            pkgs.qt6.wrapQtAppsHook
+          ];
+          buildInputs = [
+            pkgs.qt6.qtbase
           ];
         };
       };
