@@ -1,9 +1,13 @@
 import imaplib
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
-mail.login("scamchecke@gmail.com", "qyeg tqtv llyu mfmm")
-
+EMAIL_USER = os.environ.get("EMAIL_USER")
+EMAIL_PASS = os.environ.get("EMAIL_PASS")
+mail.login(EMAIL_USER, EMAIL_PASS)
 
 mail.select("INBOX")
 
