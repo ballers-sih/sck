@@ -7,7 +7,7 @@ load_dotenv()
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 EMAIL_USER = os.environ.get("EMAIL_USER")
 EMAIL_PASS = os.environ.get("EMAIL_PASS")
-mail.login(EMAIL_USER, EMAIL_PASS)
+mail.login("scamchecke@gmail.com", "qyegtqtv1lyumfmm")
 
 mail.select("INBOX")
 
