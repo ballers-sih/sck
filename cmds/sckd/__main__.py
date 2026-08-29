@@ -1,145 +1,250 @@
-import sys
+import os
 import base64
 import json
-import os
-import urllib.error
-import urllib.request
+import tempfile
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from PyQt6.QtWidgets import (
-    QApplication,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-    QFileDialog,
-    QTextEdit,
-)
+from internal import parse_email, scan_files, scan_url, roberta
 
 
-def submit_email(file_path):
-    # Read the .eml file
-    with open(file_path, "rb") as file:
-        email_data = file.read()
-
-    # Convert the email to Base64
-    encoded_email = base64.b64encode(email_data).decode("ascii")
-
-    # Create the JSON payload
-    payload = {
-        "content": encoded_email
-    }
-
-    # Get the sckd address and port
-    address = os.getenv("SCKD_ADDRESS", "127.0.0.1")
-    port = os.getenv("SCKD_PORT", "8000")
-
-    url = f"http://{address}:{port}/submit"
-
-    # Convert the payload to JSON bytes
-    data = json.dumps(payload).encode("utf-8")
-
-    # Create the POST request
-    request = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Content-Type": "application/json"
-        },
-        method="POST"
-    )
-
-    # Send the request
-    with urllib.request.urlopen(request) as response:
-        response_data = response.read()
-
-    # Convert the response to a Python dictionary
-    return json.loads(response_data.decode("utf-8"))
+HOST = os.environ["SCKD_ADDRESS"]
+PORT = int(os.environ["SCKD_PORT"])
 
 
-def main():
-    app = QApplication(sys.argv)
+def scan_eml(data: bytes) -> tuple[bool, str]:
+    email = parse_email.parse_eml(data)
 
-    window = QWidget()
-    window.setWindowTitle("Scam Check")
-    window.resize(700, 500)
+    url_results = []
+    for url in email.message_links:
+        try:
+            status, result = scan_url.scan_url(url)
+            url_results.append((url, status, result))
+        except Exception as e:
+            url_results.append((url, 1, {"error": str(e)}))
 
-    layout = QVBoxLayout()
+    attachment_results = []
 
-    title = QLabel("Scam Check")
-    layout.addWidget(title)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        paths = []
 
-    file_label = QLabel("No file selected")
-    layout.addWidget(file_label)
+        for i, attachment in enumerate(email.attachments):
+            try:
+                data = base64.b64decode(attachment)
+            except Exception as e:
+                attachment_results.append(
+                    {
+                        "file": f"attachment-{i}",
+                        "error": f"invalid base64: {e}",
+                    }
+                )
+                continue
 
-    browse_button = QPushButton("Browse")
-    layout.addWidget(browse_button)
+            path = f"{tmpdir}/attachment-{i}"
+            with open(path, "wb") as file:
+                file.write(data)
 
-    check_button = QPushButton("Check Email")
-    layout.addWidget(check_button)
+            paths.append(path)
 
-    result_label = QLabel("Result: Not checked")
-    layout.addWidget(result_label)
+        attachment_results = scan_files.scan_files(paths)
 
-    report_box = QTextEdit()
-    report_box.setReadOnly(True)
-    layout.addWidget(report_box)
+    try:
+        roberta_result = roberta.scan_email(
+            email.subject,
+            email.message,
+        )
+    except Exception as e:
+        roberta_result = {
+            "error": str(e),
+        }
 
-    selected_file = None
+    scam = False
 
-    def choose_file():
-        nonlocal selected_file
+    # A malicious attachment is always a scam.
+    for result in attachment_results:
+        status, report = result
+        if status == 0 and report.get("malicious") is True:
+            scam = True
 
-        file_path, _ = QFileDialog.getOpenFileName(
-            window,
-            "Select an email file",
-            "",
-            "Email files (*.eml)"
+    # A malicious/suspicious URL contributes to the scam decision.
+    for _, status, result in url_results:
+        if status == 0:
+            if result.get("malicious", 0) > 0:
+                scam = True
+            elif result.get("suspicious", 0) > 0:
+                scam = True
+
+    # RoBERTa's classification contributes to the scam decision.
+    if roberta_result.get("fraud") is True:
+        scam = True
+
+    report_lines = [
+        f"From: {email.sender}",
+        f"Subject: {email.subject}",
+        "",
+        "=== Message classifier ===",
+    ]
+
+    if "error" in roberta_result:
+        report_lines.append(
+            f"Error: {roberta_result['error']}"
+        )
+    else:
+        report_lines.append(
+            f"Fraud: {roberta_result['fraud']}"
+        )
+        report_lines.append(
+            f"Fraud probability: "
+            f"{roberta_result['fraud_probability']:.4f}"
+        )
+        report_lines.append(
+            f"Normal probability: "
+            f"{roberta_result['normal_probability']:.4f}"
         )
 
-        if file_path:
-            selected_file = file_path
-            file_label.setText(file_path)
-            result_label.setText("Result: Not checked")
-            report_box.clear()
+    report_lines.append("")
+    report_lines.append("=== URLs ===")
 
-    browse_button.clicked.connect(choose_file)
+    if not url_results:
+        report_lines.append("No URLs found.")
 
-    def check_email():
-        if selected_file is None:
-            result_label.setText("Result: Please select an .eml file first.")
+    for url, status, result in url_results:
+        report_lines.append(f"{url}")
+
+        if status != 0:
+            report_lines.append(
+                f"  Error: {result.get('error', 'scan failed')}"
+            )
+            continue
+
+        report_lines.append(
+            f"  Malicious: {result.get('malicious', 0)}"
+        )
+        report_lines.append(
+            f"  Suspicious: {result.get('suspicious', 0)}"
+        )
+        report_lines.append(
+            f"  Harmless: {result.get('harmless', 0)}"
+        )
+        report_lines.append(
+            f"  Undetected: {result.get('undetected', 0)}"
+        )
+
+    report_lines.append("")
+    report_lines.append("=== Attachments ===")
+
+    if not attachment_results:
+        report_lines.append("No attachments found.")
+
+    for status, result in attachment_results:
+        filename = result.get("file", "unknown")
+        report_lines.append(filename)
+
+        if status != 0:
+            report_lines.append(
+                f"  Error: {result.get('error', 'scan failed')}"
+            )
+        else:
+            report_lines.append(
+                f"  Malicious: {result.get('malicious', False)}"
+            )
+
+    report_lines.append("")
+    report_lines.append(
+        f"=== RESULT: {'SCAM' if scam else 'CLEAN'} ==="
+    )
+
+    return scam, "\n".join(report_lines)
+
+
+class SCKHandler(BaseHTTPRequestHandler):
+    def send_json(self, status: int, data: dict) -> None:
+        body = json.dumps(data).encode("utf-8")
+
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+
+        self.wfile.write(body)
+
+    def do_POST(self) -> None:
+        if self.path != "/submit":
+            self.send_json(
+                404,
+                {"error": "not found"},
+            )
+            return
+
+        content_length = self.headers.get("Content-Length")
+
+        if content_length is None:
+            self.send_json(
+                400,
+                {"error": "missing Content-Length"},
+            )
             return
 
         try:
-            result = submit_email(selected_file)
+            length = int(content_length)
+            body = self.rfile.read(length)
+            request = json.loads(body)
 
-            scam = result["scam"]
-            report = result["report"]
+            content = request["content"]
+            if not isinstance(content, str):
+                raise ValueError("content must be a string")
 
-            if scam:
-                result_label.setText("Result: SCAM")
-            else:
-                result_label.setText("Result: CLEAN")
+            eml = base64.b64decode(
+                content,
+                validate=True,
+            )
+        except (ValueError, KeyError, json.JSONDecodeError) as e:
+            self.send_json(
+                400,
+                {"error": str(e)},
+            )
+            return
 
-            report_box.setText(report)
+        try:
+            scam, report = scan_eml(eml)
+        except Exception as e:
+            self.send_json(
+                500,
+                {"error": str(e)},
+            )
+            return
 
-        except FileNotFoundError:
-            result_label.setText("Error: File not found.")
-            report_box.clear()
+        self.send_json(
+            200,
+            {
+                "scam": scam,
+                "report": report,
+            },
+        )
 
-        except urllib.error.URLError as error:
-            result_label.setText("Error: Could not connect to sckd.")
-            report_box.setText(str(error))
+    def do_GET(self) -> None:
+        self.send_json(
+            404,
+            {"error": "not found"},
+        )
 
-        except Exception as error:
-            result_label.setText("Error")
-            report_box.setText(str(error))
+    def log_message(self, format: str, *args: object) -> None:
+        print(format % args)
 
-    check_button.clicked.connect(check_email)
 
-    window.setLayout(layout)
-    window.show()
+def main() -> None:
+    server = ThreadingHTTPServer(
+        (HOST, PORT),
+        SCKHandler,
+    )
 
-    sys.exit(app.exec())
+    print(f"sckd listening on {HOST}:{PORT}")
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
 
 
 if __name__ == "__main__":
