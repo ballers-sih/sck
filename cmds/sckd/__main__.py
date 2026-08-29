@@ -3,9 +3,9 @@ import base64
 import json
 import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from dotenv import load_dotenv
 
 from internal import parse_email, scan_files, scan_url, roberta
-
 
 HOST = os.environ["SCKD_ADDRESS"]
 PORT = int(os.environ["SCKD_PORT"])
@@ -85,20 +85,14 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
     ]
 
     if "error" in roberta_result:
-        report_lines.append(
-            f"Error: {roberta_result['error']}"
-        )
+        report_lines.append(f"Error: {roberta_result['error']}")
     else:
+        report_lines.append(f"Fraud: {roberta_result['fraud']}")
         report_lines.append(
-            f"Fraud: {roberta_result['fraud']}"
+            f"Fraud probability: " f"{roberta_result['fraud_probability']:.4f}"
         )
         report_lines.append(
-            f"Fraud probability: "
-            f"{roberta_result['fraud_probability']:.4f}"
-        )
-        report_lines.append(
-            f"Normal probability: "
-            f"{roberta_result['normal_probability']:.4f}"
+            f"Normal probability: " f"{roberta_result['normal_probability']:.4f}"
         )
 
     report_lines.append("")
@@ -111,23 +105,13 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
         report_lines.append(f"{url}")
 
         if status != 0:
-            report_lines.append(
-                f"  Error: {result.get('error', 'scan failed')}"
-            )
+            report_lines.append(f"  Error: {result.get('error', 'scan failed')}")
             continue
 
-        report_lines.append(
-            f"  Malicious: {result.get('malicious', 0)}"
-        )
-        report_lines.append(
-            f"  Suspicious: {result.get('suspicious', 0)}"
-        )
-        report_lines.append(
-            f"  Harmless: {result.get('harmless', 0)}"
-        )
-        report_lines.append(
-            f"  Undetected: {result.get('undetected', 0)}"
-        )
+        report_lines.append(f"  Malicious: {result.get('malicious', 0)}")
+        report_lines.append(f"  Suspicious: {result.get('suspicious', 0)}")
+        report_lines.append(f"  Harmless: {result.get('harmless', 0)}")
+        report_lines.append(f"  Undetected: {result.get('undetected', 0)}")
 
     report_lines.append("")
     report_lines.append("=== Attachments ===")
@@ -140,18 +124,12 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
         report_lines.append(filename)
 
         if status != 0:
-            report_lines.append(
-                f"  Error: {result.get('error', 'scan failed')}"
-            )
+            report_lines.append(f"  Error: {result.get('error', 'scan failed')}")
         else:
-            report_lines.append(
-                f"  Malicious: {result.get('malicious', False)}"
-            )
+            report_lines.append(f"  Malicious: {result.get('malicious', False)}")
 
     report_lines.append("")
-    report_lines.append(
-        f"=== RESULT: {'SCAM' if scam else 'CLEAN'} ==="
-    )
+    report_lines.append(f"=== RESULT: {'SCAM' if scam else 'CLEAN'} ===")
 
     return scam, "\n".join(report_lines)
 
@@ -232,6 +210,8 @@ class SCKHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    load_dotenv()
+
     server = ThreadingHTTPServer(
         (HOST, PORT),
         SCKHandler,

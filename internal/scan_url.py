@@ -10,11 +10,7 @@ VT_API = "https://www.virustotal.com/api/v3"
 
 
 def _vt_url_id(url: str) -> str:
-    return (
-        base64.urlsafe_b64encode(url.encode())
-        .decode()
-        .rstrip("=")
-    )
+    return base64.urlsafe_b64encode(url.encode()).decode().rstrip("=")
 
 
 def _get_vt(path: str) -> dict:

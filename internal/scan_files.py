@@ -15,7 +15,13 @@ def scan_file(path: str) -> tuple[int, dict]:
 
     try:
         result = subprocess.run(
-            ["clamscan", "--no-summary", "--database", os.environ["CLAMAV_DB"], str(path)],
+            [
+                "clamscan",
+                "--no-summary",
+                "--database",
+                os.environ["CLAMAV_DB"],
+                str(path),
+            ],
             capture_output=True,
             text=True,
         )

@@ -4,6 +4,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+from dotenv import load_dotenv
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -25,9 +26,7 @@ def submit_email(file_path):
     encoded_email = base64.b64encode(email_data).decode("ascii")
 
     # Create the JSON payload
-    payload = {
-        "content": encoded_email
-    }
+    payload = {"content": encoded_email}
 
     # Get the sckd address and port
     address = os.getenv("SCKD_ADDRESS", "127.0.0.1")
@@ -40,12 +39,7 @@ def submit_email(file_path):
 
     # Create the POST request
     request = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Content-Type": "application/json"
-        },
-        method="POST"
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
     )
 
     # Send the request
@@ -57,6 +51,8 @@ def submit_email(file_path):
 
 
 def main():
+    load_dotenv()
+
     app = QApplication(sys.argv)
 
     window = QWidget()
@@ -90,10 +86,7 @@ def main():
         nonlocal selected_file
 
         file_path, _ = QFileDialog.getOpenFileName(
-            window,
-            "Select an email file",
-            "",
-            "Email files (*.eml)"
+            window, "Select an email file", "", "Email files (*.eml)"
         )
 
         if file_path:
