@@ -1,0 +1,16 @@
+[project]
+name = "sck"
+version = "0"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["cmds*", "internal*"]
+
+[project.scripts]
+sckd = "cmds.sckd.__main__:main"
+sck-cli = "cmds.sck_cli.__main__:main"
+sck-gui = "cmds.sck_gui.__main__:main"
+sck-imapd = "cmds.sck_imapd.__main__:main"
