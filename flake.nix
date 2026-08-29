@@ -8,15 +8,19 @@
     let
       system = "x86_64-linux";
       pkgs = import inputs.nixpkgs { inherit system; };
+      python = pkgs.python3Packages;
     in
     {
-      packages.${system}.default = pkgs.python3Packages.buildPythonApplication {
+      packages.${system}.default = python.buildPythonApplication {
         pname = "sck";
         version = "0";
         src = ./.;
         pyproject = true;
         build-system = [
-          pkgs.python3Packages.setuptools
+          python.setuptools
+        ];
+        dependencies = [
+          python.python-dotenv
         ];
       };
     };
