@@ -2,3 +2,4 @@ result*
 venv
 *egg-info*
 *__pycache__*
+samples/
