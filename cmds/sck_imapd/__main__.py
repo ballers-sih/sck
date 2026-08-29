@@ -10,6 +10,7 @@ load_dotenv(dotenv_path=ENV_PATH)
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 EMAIL_USER = os.environ.get("EMAIL_USER")
 EMAIL_PASS = os.environ.get("EMAIL_PASS")
+print(f"What Python reads -> User: '{EMAIL_USER}' | Pass: '{EMAIL_PASS}'")
 mail.login(EMAIL_USER, EMAIL_PASS)
 
 mail.select("INBOX")
