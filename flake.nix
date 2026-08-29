@@ -25,12 +25,8 @@
             python.transformers
             python.pyqt6
           ];
-          nativeBuildInputs = [
-            pkgs.qt6.wrapQtAppsHook
-          ];
-          buildInputs = [
-            pkgs.qt6.qtbase
-          ];
+          nativeBuildInputs = [ pkgs.qt6.wrapQtAppsHook ];
+          buildInputs = [ pkgs.qt6.qtbase ];
         };
       };
       devShells.${system} = rec {
