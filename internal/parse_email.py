@@ -5,9 +5,11 @@ from base64 import b64encode
 import re
 import sys
 
+
 @dataclass
 class ParsedEmail:
     sender: str
+    subject: str
     message: str
     message_links: list[str]
     attachments: list[str]
@@ -17,6 +19,7 @@ def parse_eml(data: bytes) -> ParsedEmail:
     email = BytesParser(policy=policy.default).parsebytes(data)
 
     sender = email.get("From", "")
+    subject = email.get("Subject", "")
     message_parts = []
     links = []
     attachments = []
@@ -43,6 +46,7 @@ def parse_eml(data: bytes) -> ParsedEmail:
 
     return ParsedEmail(
         sender=sender,
+        subject=subject,
         message="\n".join(message_parts),
         message_links=list(dict.fromkeys(links)),
         attachments=attachments,
@@ -62,6 +66,7 @@ def main():
         data = file.read()
 
     print(parse_eml(data))
+
 
 if __name__ == "__main__":
     main()

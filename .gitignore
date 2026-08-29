@@ -5,3 +5,4 @@ venv
 samples/
 .env
 .clamav/
+.models/

@@ -19,7 +19,11 @@
           src = ./.;
           pyproject = true;
           build-system = [ python.setuptools ];
-          dependencies = [ python.python-dotenv ];
+          dependencies = [
+            python.python-dotenv
+            python.torch
+            python.transformers
+          ];
         };
       };
       devShells.${system} = rec {
@@ -28,9 +32,17 @@
           packages = [
             pkgs.clamav
             pkgs.python3
+            python.huggingface-hub
           ];
 
           shellHook = ''
+            set -a
+            source .env || true
+            set +a
+
+            export ROBERTA_MODEL="$PWD/.models/roberta-email-fraud-detector"
+            hf download cunxin/roberta-email-fraud-detector --local-dir "$ROBERTA_MODEL"
+
             export CLAMAV_DB="$PWD/.clamav"
 
             mkdir -p "$CLAMAV_DB"

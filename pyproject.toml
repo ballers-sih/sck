@@ -1,7 +1,7 @@
 [project]
 name = "sck"
 version = "0"
-dependencies = ["python-dotenv"]
+dependencies = ["python-dotenv","torch","transformers"]
 
 [build-system]
 requires = ["setuptools"]
@@ -16,5 +16,6 @@ sck_cli = "cmds.sck_cli.__main__:main"
 sck_gui = "cmds.sck_gui.__main__:main"
 sck_imapd = "cmds.sck_imapd.__main__:main"
 parse_email = "internal.parse_email:main"
-scan_files = "internal.scan_files:main"
 scan_url = "internal.scan_url:main"
+scan_files = "internal.scan_files:main"
+roberta = "internal.roberta:main"
