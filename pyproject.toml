@@ -11,6 +11,6 @@ include = ["cmds*", "internal*"]
 
 [project.scripts]
 sckd = "cmds.sckd.__main__:main"
-sck-cli = "cmds.sck_cli.__main__:main"
-sck-gui = "cmds.sck_gui.__main__:main"
-sck-imapd = "cmds.sck_imapd.__main__:main"
+sck_cli = "cmds.sck_cli.__main__:main"
+sck_gui = "cmds.sck_gui.__main__:main"
+sck_imapd = "cmds.sck_imapd.__main__:main"

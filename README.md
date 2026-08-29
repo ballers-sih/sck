@@ -6,6 +6,10 @@ Team: `ballers`
 
 # usage
 
+```
+pip install -e .
+```
+
 # components
 
 1. `sckd`, the scam check daemon, exposes a single HTTP endpoint `/submit` which
