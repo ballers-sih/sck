@@ -1,5 +1,6 @@
 import imaplib
 import os
+import base64
 import requests
 from email import message_from_bytes
 from email import policy
