@@ -49,6 +49,7 @@ for idx, email_id in enumerate(email_ids):
                 if filename and filename.lower().endswith(".eml"):
                     print(filename.lower())
                     original_eml = part.get_payload(decode=True)
+                    print(original_eml)
                     break
 
             if original_eml is None:
