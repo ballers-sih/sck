@@ -46,8 +46,8 @@ for idx, email_id in enumerate(email_ids):
                     "disposition=", part.get("Content-Disposition")
                 )
                 filename = part.get_filename()
-                print(filename.lower())
                 if filename and filename.lower().endswith(".eml"):
+                    print(filename.lower())
                     original_eml = part.get_payload(decode=True)
                     break
 
