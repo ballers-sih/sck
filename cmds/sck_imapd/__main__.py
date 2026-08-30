@@ -1,5 +1,7 @@
 import imaplib
 import os
+import requests
+from email import message_from_bytes
 from dotenv import load_dotenv
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,12 +23,41 @@ xdg_cache = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 XDG_CACHE_DIR = os.path.join(xdg_cache, "sck_app")
 os.makedirs(XDG_CACHE_DIR, exist_ok=True)
 
+SCKD_ADDRESS = os.environ.get("SCKD_ADDRESS")
+SCKD_PORT = os.environ.get("SCKD_PORT")
+SCKD_URL = f"http://{SCKD_ADDRESS}:{SCKD_PORT}/submit"
+
 for idx, email_id in enumerate(email_ids):
     res, msg_data = mail.fetch(email_id, "(RFC822)")
     for response_part in msg_data:
         if isinstance(response_part, tuple):
+            msg = message_from_bytes(response_part[1])
+            original_eml = None
+
+            for part in msg.walk():
+                filename = part.get_filename()
+                if filename and filename.lower().endswith(".eml"):
+                    original_eml = part.get_payload(decode=True)
+                    break
+
+            if original_eml is None:
+                print(f"No .eml attachment found in email_{idx}")
+                continue
+            
             file_path = os.path.join(XDG_CACHE_DIR, f"email_{idx}.eml")
             with open(file_path, "wb") as f:
-                f.write(response_part[1])
+                f.write(original_eml)
+            with open(file_path, "rb") as f:
+                response = requests.post(
+                    SCKD_URL,
+                    files={"file": (f"email_{idx}.eml", f, "message/rfc822")},
+                    timeout=120
+                )
 
+            response.raise_for_status()
+
+            print(
+                f"Submitted email_{idx}.eml to sckd: ",
+                f"{response.status_code}"
+            )
 mail.logout()
