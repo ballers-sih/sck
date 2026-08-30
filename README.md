@@ -4,6 +4,10 @@ SIH internal hackathon
 
 Team: `ballers`
 
+1. [components](#components)
+2. [showcase](#showcase)
+3. [usage](#usage)
+
 # components
 
 1. `sckd`, the scam check daemon, exposes a single HTTP endpoint `/submit` which
