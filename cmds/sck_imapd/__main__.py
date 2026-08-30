@@ -44,10 +44,10 @@ def convert_forwarded_email(msg):
 
     new_email = EmailMessage()
 
-    new_email["From"] = match.group(1).strip()
-    new_email["Date"] = match.group(2).strip()
-    new_email["Subject"] = match.group(3).strip()
-    new_email["To"] = match.group(4).strip()
+    new_email["From"] = match.group(1).strip().replace("\r", "").replace("\n", "")
+    new_email["Date"] = match.group(2).strip().replace("\r", "").replace("\n", "")
+    new_email["Subject"] = match.group(3).strip().replace("\r", "").replace("\n", "")
+    new_email["To"] = match.group(4).strip().replace("\r", "").replace("\n", "")
 
     message = match.group(5).strip()
 
@@ -69,10 +69,7 @@ def convert_forwarded_email(msg):
     return buffer.getvalue()
 
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", ".."))
-ENV_PATH = os.path.join(PROJECT_ROOT, ".env")
-load_dotenv(dotenv_path=ENV_PATH)
+load_dotenv(os.getcwd() + "/.env")
 
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 EMAIL_USER = os.environ["EMAIL_USER"]
