@@ -94,7 +94,7 @@ idx = 0
 while True:
     print("Checking Gmail...")
 
-    status, messages = mail.search(None, "UNSEEN")
+    status, messages = mail.search(None, "ALL")
     print("Search status:", status)
     print("Raw messages:", messages)
 
