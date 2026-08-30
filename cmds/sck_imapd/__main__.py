@@ -189,4 +189,4 @@ while True:
                 mail.store(email_id, "+FLAGS", "\\Seen")
                 idx += 1
 
-    time.sleep(5)
+    time.sleep(30)
