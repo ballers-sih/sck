@@ -46,6 +46,12 @@ Team: `ballers`
 
 # showcase
 
+> Reply from `sck_imapd` after analyzing a forwarded email
+
+![screenshot 4](./screenshots/4.png)
+
+> Using `sck_gui`
+
 ![screenshot 1](./screenshots/1.png)
 
 ![screenshot 2](./screenshots/2.png)
