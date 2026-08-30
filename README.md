@@ -64,12 +64,10 @@ Team: `ballers`
    $ nix run github:ballers-sih/sck#sckd
    ```
 
-   Make sure to pass `$VT_API_KEY`, either in `.env` or by `export`ing it.
+   Make sure to pass `$VT_API_KEY` (your VirusTotal API Key), `$SCKD_ADDRESS`
+   and `$SCKD_PORT`, either in `.env` or by `export`ing it.
 
-2. `sckd` starts on `127.0.0.1:7079`. this can be changed by passing your own
-   `$SCKD_ADDRESS` and `$SCKD_PORT`.
-
-3. ratelimiting and access control for `sckd` is up to the caller. when exposing
+2. ratelimiting and access control for `sckd` is up to the caller. when exposing
    beyond `localhost`, it is recommended to place `sckd` behind a reverse proxy.
 
 ### without Nix
@@ -101,13 +99,10 @@ Team: `ballers`
    $ sckd
    ```
 
-   Make sure to pass `$VT_API_KEY` (your VirusTotal API Key), either in `.env`
-   or by `export`ing it.
+   Make sure to pass `$VT_API_KEY` (your VirusTotal API Key), `$SCKD_ADDRESS`
+   and `$SCKD_PORT`, either in `.env` or by `export`ing it.
 
-5. `sckd` starts on `127.0.0.1:7079`. this can be changed by passing your own
-   `$SCKD_ADDRESS` and `$SCKD_PORT`.
-
-6. ratelimiting and access control for `sckd` is up to the caller. when exposing
+5. ratelimiting and access control for `sckd` is up to the caller. when exposing
    beyond `localhost`, it is recommended to place `sckd` behind a reverse proxy.
 
 ## running the clients
