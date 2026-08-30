@@ -26,8 +26,8 @@ xdg_cache = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 XDG_CACHE_DIR = os.path.join(xdg_cache, "sck_app")
 os.makedirs(XDG_CACHE_DIR, exist_ok=True)
 
-SCKD_ADDRESS = os.environ.get("SCKD_ADDRESS")
-SCKD_PORT = os.environ.get("SCKD_PORT")
+SCKD_ADDRESS = os.getenv("SCKD_ADDRESS", "127.0.0.1")
+SCKD_PORT = os.getenv("SCKD_PORT", "8000")
 SCKD_URL = f"http://{SCKD_ADDRESS}:{SCKD_PORT}/submit"
 
 for idx, email_id in enumerate(email_ids):
