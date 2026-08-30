@@ -18,48 +18,67 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-# =====================================================
-# Communication with sckd
-# =====================================================
 
+# ============================================================
+# COMMUNICATE WITH SCKD
+# ============================================================
 
 def submit_email(file_path):
-    # Read the .eml file
+    """
+    Read an .eml file, convert it to Base64,
+    send it to sckd, and return the response.
+    """
+
     with open(file_path, "rb") as file:
         email_data = file.read()
 
-    # Convert email to Base64
-    encoded_email = base64.b64encode(email_data).decode("ascii")
+    encoded_email = base64.b64encode(
+        email_data
+    ).decode("ascii")
 
-    # Create JSON payload
-    payload = {"content": encoded_email}
+    payload = {
+        "content": encoded_email
+    }
 
-    # Get sckd address and port
-    address = os.getenv("SCKD_ADDRESS", "127.0.0.1")
-    port = os.getenv("SCKD_PORT", "8000")
+    address = os.getenv(
+        "SCKD_ADDRESS",
+        "127.0.0.1"
+    )
+
+    port = os.getenv(
+        "SCKD_PORT",
+        "8000"
+    )
 
     url = f"http://{address}:{port}/submit"
 
-    # Convert payload to JSON bytes
-    data = json.dumps(payload).encode("utf-8")
+    data = json.dumps(
+        payload
+    ).encode("utf-8")
 
-    # Create POST request
     request = urllib.request.Request(
-        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
+        url,
+        data=data,
+        headers={
+            "Content-Type": "application/json"
+        },
+        method="POST"
     )
 
-    # Send request
-    with urllib.request.urlopen(request) as response:
+    with urllib.request.urlopen(
+        request
+    ) as response:
+
         response_data = response.read()
 
-    # Convert response to Python dictionary
-    return json.loads(response_data.decode("utf-8"))
+    return json.loads(
+        response_data.decode("utf-8")
+    )
 
 
-# =====================================================
-# Worker thread
-# =====================================================
-
+# ============================================================
+# WORKER THREAD
+# ============================================================
 
 class ScanWorker(QThread):
 
@@ -67,80 +86,119 @@ class ScanWorker(QThread):
     error = pyqtSignal(str)
 
     def __init__(self, file_path):
+
         super().__init__()
 
         self.file_path = file_path
 
     def run(self):
-        try:
-            result = submit_email(self.file_path)
 
-            self.finished.emit(result)
+        try:
+
+            result = submit_email(
+                self.file_path
+            )
+
+            self.finished.emit(
+                result
+            )
 
         except FileNotFoundError:
-            self.error.emit("File not found.")
+
+            self.error.emit(
+                "The selected file could not be found."
+            )
 
         except urllib.error.URLError as error:
-            self.error.emit(f"Could not connect to sckd.\n\n{error}")
+
+            self.error.emit(
+                f"Could not connect to sckd.\n\n{error}"
+            )
 
         except Exception as error:
-            self.error.emit(str(error))
+
+            self.error.emit(
+                str(error)
+            )
 
 
-# =====================================================
-# Main GUI
-# =====================================================
-
+# ============================================================
+# MAIN GUI
+# ============================================================
 
 def main():
 
-    app = QApplication(sys.argv)
-
-    # -------------------------------------------------
-    # Main window
-    # -------------------------------------------------
+    app = QApplication(
+        sys.argv
+    )
 
     window = QWidget()
 
-    window.setWindowTitle("Scam Check")
+    window.setWindowTitle(
+        "Scam Check"
+    )
 
-    window.resize(900, 700)
+    window.resize(
+        950,
+        750
+    )
+
+    window.setMinimumSize(
+        750,
+        600
+    )
+
+    # ========================================================
+    # STYLES
+    # ========================================================
 
     window.setStyleSheet("""
+        /* ================================
+        NORD THEME
+        ================================ */
+
         QWidget {
-            background-color: #0f172a;
-            color: #e2e8f0;
+            background-color: #2E3440;
+            color: #ECEFF4;
             font-family: "Segoe UI";
         }
 
-        QFrame#card {
-            background-color: #1e293b;
-            border-radius: 12px;
-        }
+        /* ---------- HEADER ---------- */
 
         QLabel#title {
-            font-size: 28px;
+            font-size: 30px;
             font-weight: bold;
-            color: #f8fafc;
+            color: #ECEFF4;
         }
 
         QLabel#subtitle {
             font-size: 14px;
-            color: #94a3b8;
+            color: #D8DEE9;
         }
 
         QLabel#section_title {
             font-size: 13px;
             font-weight: bold;
-            color: #94a3b8;
+            color: #88C0D0;
         }
 
+        /* ---------- CARDS ---------- */
+
+        QFrame#card {
+            background-color: #3B4252;
+            border-radius: 12px;
+        }
+
+        /* ---------- FILE ---------- */
+
         QLabel#file_label {
-            background-color: #0f172a;
+            background-color: #2E3440;
             border-radius: 8px;
             padding: 12px;
-            color: #cbd5e1;
+            color: #D8DEE9;
         }
+
+        /* ---------- BUTTONS ---------- */
 
         QPushButton {
             border: none;
@@ -151,267 +209,488 @@ def main():
         }
 
         QPushButton#browse_button {
-            background-color: #334155;
-            color: #f8fafc;
+            background-color: #4C566A;
+            color: #ECEFF4;
         }
 
         QPushButton#browse_button:hover {
-            background-color: #475569;
+            background-color: #5E81AC;
         }
 
         QPushButton#check_button {
-            background-color: #2563eb;
-            color: white;
-            padding: 13px;
+            background-color: #5E81AC;
+            color: #ECEFF4;
+            padding: 14px;
+            font-size: 15px;
         }
 
         QPushButton#check_button:hover {
-            background-color: #1d4ed8;
+            background-color: #81A1C1;
         }
 
         QPushButton#check_button:disabled {
-            background-color: #475569;
-            color: #94a3b8;
+            background-color: #4C566A;
+            color: #D8DEE9;
         }
 
+        QPushButton#clear_button {
+            background-color: #4C566A;
+            color: #ECEFF4;
+        }
+
+        QPushButton#clear_button:hover {
+            background-color: #5E81AC;
+        }
+
+        QPushButton#clear_button:disabled {
+            color: #616A7D;
+        }
+
+        /* ---------- RESULT ---------- */
+
         QLabel#result {
-            background-color: #0f172a;
+            background-color: #2E3440;
             border-radius: 8px;
-            padding: 16px;
-            font-size: 20px;
+            padding: 18px;
+            font-size: 21px;
             font-weight: bold;
+            color: #ECEFF4;
         }
 
         QLabel#email_info {
-            background-color: #0f172a;
+            background-color: #2E3440;
             border-radius: 8px;
             padding: 14px;
-            color: #cbd5e1;
+            color: #D8DEE9;
             font-size: 13px;
         }
 
         QTextEdit {
-            background-color: #0f172a;
+            background-color: #2E3440;
             border: none;
             border-radius: 8px;
             padding: 12px;
-            color: #cbd5e1;
+            color: #D8DEE9;
             font-size: 13px;
+        }
+
+        QTextEdit:focus {
+            border: 1px solid #88C0D0;
         }
     """)
 
-    # -------------------------------------------------
-    # Main layout
-    # -------------------------------------------------
+    # ========================================================
+    # MAIN LAYOUT
+    # ========================================================
 
     main_layout = QVBoxLayout()
 
-    main_layout.setContentsMargins(35, 30, 35, 30)
-
-    main_layout.setSpacing(18)
-
-    # -------------------------------------------------
-    # Header
-    # -------------------------------------------------
-
-    title = QLabel("SCAM CHECK")
-
-    title.setObjectName("title")
-
-    subtitle = QLabel(
-        "Analyze suspicious emails for scams, " "malicious links and attachments."
+    main_layout.setContentsMargins(
+        35,
+        30,
+        35,
+        30
     )
 
-    subtitle.setObjectName("subtitle")
+    main_layout.setSpacing(
+        18
+    )
 
-    main_layout.addWidget(title)
+    # ========================================================
+    # HEADER
+    # ========================================================
 
-    main_layout.addWidget(subtitle)
+    title = QLabel(
+        "SCAM CHECK"
+    )
 
-    # -------------------------------------------------
-    # File selection card
-    # -------------------------------------------------
+    title.setObjectName(
+        "title"
+    )
+
+    subtitle = QLabel(
+        "Analyze suspicious emails for scams, "
+        "malicious links and attachments."
+    )
+
+    subtitle.setObjectName(
+        "subtitle"
+    )
+
+    main_layout.addWidget(
+        title
+    )
+
+    main_layout.addWidget(
+        subtitle
+    )
+
+    # ========================================================
+    # FILE CARD
+    # ========================================================
 
     file_card = QFrame()
 
-    file_card.setObjectName("card")
+    file_card.setObjectName(
+        "card"
+    )
 
     file_layout = QVBoxLayout()
 
-    file_layout.setContentsMargins(20, 20, 20, 20)
+    file_layout.setContentsMargins(
+        20,
+        20,
+        20,
+        20
+    )
 
-    file_layout.setSpacing(12)
+    file_layout.setSpacing(
+        12
+    )
 
-    file_section_title = QLabel("EMAIL FILE")
+    file_title = QLabel(
+        "EMAIL FILE"
+    )
 
-    file_section_title.setObjectName("section_title")
+    file_title.setObjectName(
+        "section_title"
+    )
 
-    file_layout.addWidget(file_section_title)
+    file_layout.addWidget(
+        file_title
+    )
 
     file_row = QHBoxLayout()
 
-    file_row.setSpacing(10)
+    file_row.setSpacing(
+        10
+    )
 
-    file_label = QLabel("No file selected")
+    file_label = QLabel(
+        "No .eml file selected"
+    )
 
-    file_label.setObjectName("file_label")
+    file_label.setObjectName(
+        "file_label"
+    )
 
-    file_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+    file_label.setWordWrap(
+        True
+    )
 
-    browse_button = QPushButton("Browse")
+    browse_button = QPushButton(
+        "Browse"
+    )
 
-    browse_button.setObjectName("browse_button")
+    browse_button.setObjectName(
+        "browse_button"
+    )
 
-    file_row.addWidget(file_label, 1)
+    file_row.addWidget(
+        file_label,
+        1
+    )
 
-    file_row.addWidget(browse_button)
+    file_row.addWidget(
+        browse_button
+    )
 
-    file_layout.addLayout(file_row)
+    file_layout.addLayout(
+        file_row
+    )
 
-    file_card.setLayout(file_layout)
+    file_card.setLayout(
+        file_layout
+    )
 
-    main_layout.addWidget(file_card)
+    main_layout.addWidget(
+        file_card
+    )
 
-    # -------------------------------------------------
-    # Check button
-    # -------------------------------------------------
+    # ========================================================
+    # BUTTONS
+    # ========================================================
 
-    check_button = QPushButton("CHECK EMAIL")
+    button_row = QHBoxLayout()
 
-    check_button.setObjectName("check_button")
+    button_row.setSpacing(
+        10
+    )
 
-    main_layout.addWidget(check_button)
+    check_button = QPushButton(
+        "CHECK EMAIL"
+    )
 
-    # -------------------------------------------------
-    # Analysis result card
-    # -------------------------------------------------
+    check_button.setObjectName(
+        "check_button"
+    )
+
+    clear_button = QPushButton(
+        "CLEAR"
+    )
+
+    clear_button.setObjectName(
+        "clear_button"
+    )
+
+    clear_button.setEnabled(
+        False
+    )
+
+    button_row.addWidget(
+        check_button,
+        4
+    )
+
+    button_row.addWidget(
+        clear_button,
+        1
+    )
+
+    main_layout.addLayout(
+        button_row
+    )
+
+    # ========================================================
+    # RESULT CARD
+    # ========================================================
 
     result_card = QFrame()
 
-    result_card.setObjectName("card")
+    result_card.setObjectName(
+        "card"
+    )
 
     result_layout = QVBoxLayout()
 
-    result_layout.setContentsMargins(20, 20, 20, 20)
+    result_layout.setContentsMargins(
+        20,
+        20,
+        20,
+        20
+    )
 
-    result_layout.setSpacing(12)
+    result_layout.setSpacing(
+        12
+    )
 
-    result_section_title = QLabel("ANALYSIS RESULT")
+    result_title = QLabel(
+        "ANALYSIS RESULT"
+    )
 
-    result_section_title.setObjectName("section_title")
+    result_title.setObjectName(
+        "section_title"
+    )
 
-    result_layout.addWidget(result_section_title)
+    result_layout.addWidget(
+        result_title
+    )
 
     # Main result
-    result_label = QLabel("Not checked")
+    result_label = QLabel(
+        "Ready to analyze"
+    )
 
-    result_label.setObjectName("result")
+    result_label.setObjectName(
+        "result"
+    )
 
-    result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    result_label.setAlignment(
+        Qt.AlignmentFlag.AlignCenter
+    )
 
-    result_layout.addWidget(result_label)
+    result_layout.addWidget(
+        result_label
+    )
 
     # Email information
-    email_info = QLabel("No email analyzed yet.")
+    email_info = QLabel(
+        "Select an .eml file to begin."
+    )
 
-    email_info.setObjectName("email_info")
+    email_info.setObjectName(
+        "email_info"
+    )
 
-    email_info.setWordWrap(True)
+    email_info.setWordWrap(
+        True
+    )
 
-    result_layout.addWidget(email_info)
+    result_layout.addWidget(
+        email_info
+    )
 
     # Detailed report
     report_box = QTextEdit()
 
-    report_box.setReadOnly(True)
+    report_box.setReadOnly(
+        True
+    )
 
-    result_layout.addWidget(report_box, 1)
+    report_box.setPlaceholderText(
+        "The detailed analysis report will appear here."
+    )
 
-    result_card.setLayout(result_layout)
+    result_layout.addWidget(
+        report_box,
+        1
+    )
 
-    main_layout.addWidget(result_card, 1)
+    result_card.setLayout(
+        result_layout
+    )
 
-    # -------------------------------------------------
-    # State
-    # -------------------------------------------------
+    main_layout.addWidget(
+        result_card,
+        1
+    )
+
+    # ========================================================
+    # STATE
+    # ========================================================
 
     selected_file = None
 
     worker = None
 
-    # -------------------------------------------------
-    # Browse button
-    # -------------------------------------------------
+    # ========================================================
+    # BROWSE
+    # ========================================================
 
     def choose_file():
 
         nonlocal selected_file
 
         file_path, _ = QFileDialog.getOpenFileName(
-            window, "Select an email file", "", "Email files (*.eml)"
+            window,
+            "Select an email file",
+            "",
+            "Email files (*.eml)"
         )
 
-        if file_path:
+        if not file_path:
 
-            selected_file = file_path
+            return
 
-            file_label.setText(file_path)
+        selected_file = file_path
 
-            result_label.setText("Not checked")
+        file_label.setText(
+            file_path
+        )
 
-            result_label.setStyleSheet("")
+        result_label.setText(
+            "Ready to analyze"
+        )
 
-            email_info.setText("No email analyzed yet.")
+        result_label.setStyleSheet(
+            ""
+        )
 
-            report_box.clear()
+        email_info.setText(
+            "File selected. Click CHECK EMAIL to begin."
+        )
 
-    browse_button.clicked.connect(choose_file)
+        report_box.clear()
 
-    # -------------------------------------------------
-    # Scan completed
-    # -------------------------------------------------
+        clear_button.setEnabled(
+            True
+        )
+
+    browse_button.clicked.connect(
+        choose_file
+    )
+
+    # ========================================================
+    # CLEAR
+    # ========================================================
+
+    def clear_results():
+
+        nonlocal selected_file
+
+        selected_file = None
+
+        file_label.setText(
+            "No .eml file selected"
+        )
+
+        result_label.setText(
+            "Ready to analyze"
+        )
+
+        result_label.setStyleSheet(
+            ""
+        )
+
+        email_info.setText(
+            "Select an .eml file to begin."
+        )
+
+        report_box.clear()
+
+        clear_button.setEnabled(
+            False
+        )
+
+    clear_button.clicked.connect(
+        clear_results
+    )
+
+    # ========================================================
+    # SCAN FINISHED
+    # ========================================================
 
     def scan_finished(result):
 
         nonlocal worker
 
-        scam = result["scam"]
+        scam = result.get(
+            "scam",
+            False
+        )
 
-        report = result["report"]
+        report = result.get(
+            "report",
+            "No report was returned."
+        )
 
-        # ---------------------------------------------
-        # Display result
-        # ---------------------------------------------
+        # ----------------------------------------------------
+        # SCAM RESULT
+        # ----------------------------------------------------
 
         if scam:
 
-            result_label.setText("⚠  SCAM DETECTED")
+            result_label.setText(
+                "⚠  SCAM DETECTED"
+            )
 
             result_label.setStyleSheet("""
                 background-color: #450a0a;
                 color: #fca5a5;
                 border-radius: 8px;
-                padding: 16px;
-                font-size: 20px;
+                padding: 18px;
+                font-size: 21px;
                 font-weight: bold;
             """)
 
         else:
 
-            result_label.setText("✓  EMAIL APPEARS CLEAN")
+            result_label.setText(
+                "✓  EMAIL APPEARS CLEAN"
+            )
 
             result_label.setStyleSheet("""
                 background-color: #052e16;
                 color: #86efac;
                 border-radius: 8px;
-                padding: 16px;
-                font-size: 20px;
+                padding: 18px;
+                font-size: 21px;
                 font-weight: bold;
             """)
 
-        # ---------------------------------------------
-        # Extract basic email information
-        # ---------------------------------------------
+        # ----------------------------------------------------
+        # EXTRACT EMAIL INFORMATION
+        # ----------------------------------------------------
 
         sender = "Unknown"
 
@@ -421,130 +700,234 @@ def main():
 
             if line.startswith("From:"):
 
-                sender = line[5:].strip()
+                sender = line[
+                    len("From:"):
+                ].strip()
 
             elif line.startswith("Subject:"):
 
-                subject = line[8:].strip()
+                subject = line[
+                    len("Subject:"):
+                ].strip()
 
-        email_info.setText(f"<b>Sender:</b> {sender}<br>" f"<b>Subject:</b> {subject}")
+        email_info.setText(
+            f"<b>Sender:</b> {sender}<br>"
+            f"<b>Subject:</b> {subject}"
+        )
 
-        # ---------------------------------------------
-        # Display report
-        # ---------------------------------------------
+        # ----------------------------------------------------
+        # REPORT
+        # ----------------------------------------------------
 
-        report_box.setText(report)
+        report_box.setText(
+            report
+        )
 
-        # ---------------------------------------------
-        # Restore button
-        # ---------------------------------------------
+        # ----------------------------------------------------
+        # RESTORE BUTTONS
+        # ----------------------------------------------------
 
-        check_button.setEnabled(True)
+        check_button.setEnabled(
+            True
+        )
 
-        browse_button.setEnabled(True)
+        browse_button.setEnabled(
+            True
+        )
 
-        check_button.setText("CHECK EMAIL")
+        clear_button.setEnabled(
+            True
+        )
+
+        check_button.setText(
+            "CHECK EMAIL"
+        )
 
         worker = None
 
-    # -------------------------------------------------
-    # Scan error
-    # -------------------------------------------------
+    # ========================================================
+    # SCAN ERROR
+    # ========================================================
 
     def scan_error(message):
 
         nonlocal worker
 
-        result_label.setText("⚠  SCAN ERROR")
+        result_label.setText(
+            "⚠  SCAN ERROR"
+        )
 
         result_label.setStyleSheet("""
             background-color: #451a03;
             color: #fdba74;
             border-radius: 8px;
-            padding: 16px;
-            font-size: 20px;
+            padding: 18px;
+            font-size: 21px;
             font-weight: bold;
         """)
 
-        email_info.setText("The email could not be analyzed.")
+        email_info.setText(
+            "The email could not be analyzed."
+        )
 
-        report_box.setText(message)
+        report_box.setText(
+            message
+        )
 
-        check_button.setEnabled(True)
+        check_button.setEnabled(
+            True
+        )
 
-        browse_button.setEnabled(True)
+        browse_button.setEnabled(
+            True
+        )
 
-        check_button.setText("CHECK EMAIL")
+        clear_button.setEnabled(
+            True
+        )
+
+        check_button.setText(
+            "CHECK EMAIL"
+        )
 
         worker = None
 
-    # -------------------------------------------------
-    # Check button
-    # -------------------------------------------------
+    # ========================================================
+    # CHECK EMAIL
+    # ========================================================
 
     def check_email():
 
         nonlocal worker
 
+        # ----------------------------------------------------
+        # No file selected
+        # ----------------------------------------------------
+
         if selected_file is None:
 
-            result_label.setText("Please select an .eml file first.")
+            result_label.setText(
+                "Please select an .eml file first."
+            )
 
-            email_info.setText("")
+            result_label.setStyleSheet("""
+                background-color: #422006;
+                color: #fde68a;
+                border-radius: 8px;
+                padding: 18px;
+                font-size: 18px;
+                font-weight: bold;
+            """)
 
-            report_box.clear()
+            email_info.setText(
+                "Use the Browse button to select an email file."
+            )
 
             return
 
-        # ---------------------------------------------
-        # Update UI while scanning
-        # ---------------------------------------------
+        # ----------------------------------------------------
+        # Check extension
+        # ----------------------------------------------------
 
-        check_button.setEnabled(False)
+        if not selected_file.lower().endswith(
+            ".eml"
+        ):
 
-        browse_button.setEnabled(False)
+            result_label.setText(
+                "Invalid file type"
+            )
 
-        check_button.setText("ANALYZING EMAIL...")
+            email_info.setText(
+                "Please select an .eml email file."
+            )
 
-        result_label.setText("🔄  ANALYZING EMAIL...")
+            return
+
+        # ----------------------------------------------------
+        # Disable controls
+        # ----------------------------------------------------
+
+        check_button.setEnabled(
+            False
+        )
+
+        browse_button.setEnabled(
+            False
+        )
+
+        clear_button.setEnabled(
+            False
+        )
+
+        check_button.setText(
+            "ANALYZING EMAIL..."
+        )
+
+        # ----------------------------------------------------
+        # Loading state
+        # ----------------------------------------------------
+
+        result_label.setText(
+            "🔄  ANALYZING EMAIL..."
+        )
 
         result_label.setStyleSheet("""
             background-color: #172554;
             color: #93c5fd;
             border-radius: 8px;
-            padding: 16px;
-            font-size: 20px;
+            padding: 18px;
+            font-size: 21px;
             font-weight: bold;
         """)
 
-        email_info.setText("Scam Check is analyzing this email...")
+        email_info.setText(
+            "Scam Check is analyzing this email. "
+            "Please wait..."
+        )
 
         report_box.clear()
 
-        # ---------------------------------------------
-        # Start worker thread
-        # ---------------------------------------------
+        # ----------------------------------------------------
+        # Start worker
+        # ----------------------------------------------------
 
-        worker = ScanWorker(selected_file)
+        worker = ScanWorker(
+            selected_file
+        )
 
-        worker.finished.connect(scan_finished)
+        worker.finished.connect(
+            scan_finished
+        )
 
-        worker.error.connect(scan_error)
+        worker.error.connect(
+            scan_error
+        )
 
         worker.start()
 
-    check_button.clicked.connect(check_email)
+    check_button.clicked.connect(
+        check_email
+    )
 
-    # -------------------------------------------------
-    # Show window
-    # -------------------------------------------------
+    # ========================================================
+    # SHOW WINDOW
+    # ========================================================
 
-    window.setLayout(main_layout)
+    window.setLayout(
+        main_layout
+    )
 
     window.show()
 
-    sys.exit(app.exec())
+    sys.exit(
+        app.exec()
+    )
 
+
+# ============================================================
+# ENTRY POINT
+# ============================================================
 
 if __name__ == "__main__":
+
     main()
