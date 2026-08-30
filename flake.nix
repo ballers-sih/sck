@@ -24,6 +24,7 @@
             python.torch
             python.transformers
             python.pyqt6
+            python.requests
           ];
           nativeBuildInputs = [ pkgs.qt6.wrapQtAppsHook ];
           buildInputs = [ pkgs.qt6.qtbase ];

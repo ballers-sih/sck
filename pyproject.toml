@@ -1,7 +1,7 @@
 [project]
 name = "sck"
 version = "0"
-dependencies = ["python-dotenv","torch","transformers", "PyQt6"]
+dependencies = ["python-dotenv","torch","transformers", "PyQt6","requests"]
 
 [build-system]
 requires = ["setuptools"]
