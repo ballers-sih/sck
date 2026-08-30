@@ -142,6 +142,7 @@ def main():
         600
     )
 
+
     # ========================================================
     # STYLES
     # ========================================================
@@ -157,6 +158,7 @@ def main():
             font-family: "Segoe UI";
         }
 
+
         /* ---------- HEADER ---------- */
 
         QLabel#title {
@@ -170,11 +172,16 @@ def main():
             color: #D8DEE9;
         }
 
+
+        /* ---------- SECTION TITLES ---------- */
+
         QLabel#section_title {
             font-size: 13px;
             font-weight: bold;
             color: #88C0D0;
+            background-color: transparent;
         }
+
 
         /* ---------- CARDS ---------- */
 
@@ -182,6 +189,7 @@ def main():
             background-color: #3B4252;
             border-radius: 12px;
         }
+
 
         /* ---------- FILE ---------- */
 
@@ -191,6 +199,7 @@ def main():
             padding: 12px;
             color: #D8DEE9;
         }
+
 
         /* ---------- BUTTONS ---------- */
 
@@ -240,6 +249,7 @@ def main():
             color: #616A7D;
         }
 
+
         /* ---------- RESULT ---------- */
 
         QLabel#result {
@@ -259,6 +269,9 @@ def main():
             font-size: 13px;
         }
 
+
+        /* ---------- REPORT ---------- */
+
         QTextEdit {
             background-color: #2E3440;
             border: none;
@@ -272,6 +285,7 @@ def main():
             border: 1px solid #88C0D0;
         }
     """)
+
 
     # ========================================================
     # MAIN LAYOUT
@@ -289,6 +303,7 @@ def main():
     main_layout.setSpacing(
         18
     )
+
 
     # ========================================================
     # HEADER
@@ -318,6 +333,7 @@ def main():
     main_layout.addWidget(
         subtitle
     )
+
 
     # ========================================================
     # FILE CARD
@@ -353,6 +369,9 @@ def main():
     file_layout.addWidget(
         file_title
     )
+
+
+    # File selection row
 
     file_row = QHBoxLayout()
 
@@ -401,6 +420,7 @@ def main():
         file_card
     )
 
+
     # ========================================================
     # BUTTONS
     # ========================================================
@@ -445,6 +465,7 @@ def main():
         button_row
     )
 
+
     # ========================================================
     # RESULT CARD
     # ========================================================
@@ -480,7 +501,9 @@ def main():
         result_title
     )
 
+
     # Main result
+
     result_label = QLabel(
         "Ready to analyze"
     )
@@ -497,7 +520,9 @@ def main():
         result_label
     )
 
+
     # Email information
+
     email_info = QLabel(
         "Select an .eml file to begin."
     )
@@ -514,7 +539,9 @@ def main():
         email_info
     )
 
+
     # Detailed report
+
     report_box = QTextEdit()
 
     report_box.setReadOnly(
@@ -539,6 +566,7 @@ def main():
         1
     )
 
+
     # ========================================================
     # STATE
     # ========================================================
@@ -546,6 +574,7 @@ def main():
     selected_file = None
 
     worker = None
+
 
     # ========================================================
     # BROWSE
@@ -590,9 +619,11 @@ def main():
             True
         )
 
+
     browse_button.clicked.connect(
         choose_file
     )
+
 
     # ========================================================
     # CLEAR
@@ -626,9 +657,11 @@ def main():
             False
         )
 
+
     clear_button.clicked.connect(
         clear_results
     )
+
 
     # ========================================================
     # SCAN FINISHED
@@ -647,6 +680,7 @@ def main():
             "report",
             "No report was returned."
         )
+
 
         # ----------------------------------------------------
         # SCAM RESULT
@@ -682,6 +716,7 @@ def main():
                 font-weight: bold;
             """)
 
+
         # ----------------------------------------------------
         # EXTRACT EMAIL INFORMATION
         # ----------------------------------------------------
@@ -704,10 +739,12 @@ def main():
                     len("Subject:"):
                 ].strip()
 
+
         email_info.setText(
             f"<b>Sender:</b> {sender}<br>"
             f"<b>Subject:</b> {subject}"
         )
+
 
         # ----------------------------------------------------
         # REPORT
@@ -716,6 +753,7 @@ def main():
         report_box.setText(
             report
         )
+
 
         # ----------------------------------------------------
         # RESTORE BUTTONS
@@ -738,6 +776,7 @@ def main():
         )
 
         worker = None
+
 
     # ========================================================
     # SCAN ERROR
@@ -786,6 +825,7 @@ def main():
 
         worker = None
 
+
     # ========================================================
     # CHECK EMAIL
     # ========================================================
@@ -793,6 +833,7 @@ def main():
     def check_email():
 
         nonlocal worker
+
 
         # ----------------------------------------------------
         # No file selected
@@ -819,6 +860,7 @@ def main():
 
             return
 
+
         # ----------------------------------------------------
         # Check extension
         # ----------------------------------------------------
@@ -836,6 +878,7 @@ def main():
             )
 
             return
+
 
         # ----------------------------------------------------
         # Disable controls
@@ -856,6 +899,7 @@ def main():
         check_button.setText(
             "ANALYZING EMAIL..."
         )
+
 
         # ----------------------------------------------------
         # Loading state
@@ -881,6 +925,7 @@ def main():
 
         report_box.clear()
 
+
         # ----------------------------------------------------
         # Start worker
         # ----------------------------------------------------
@@ -899,9 +944,11 @@ def main():
 
         worker.start()
 
+
     check_button.clicked.connect(
         check_email
     )
+
 
     # ========================================================
     # SHOW WINDOW
@@ -923,5 +970,4 @@ def main():
 # ============================================================
 
 if __name__ == "__main__":
-
     main()
