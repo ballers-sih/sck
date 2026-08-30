@@ -6,8 +6,69 @@ import time
 from email import message_from_bytes
 from email import policy
 from email.generator import BytesGenerator
+import re
+from email.message import EmailMessage
 from io import BytesIO
 from dotenv import load_dotenv
+
+def convert_forwarded_email(msg):
+    body = ""
+
+    for part in msg.walk():
+        if part.get_content_type() == "text/plain":
+            body = part.get_content()
+            break
+
+    marker = "---------- Forwarded message ---------"
+
+    if marker not in body:
+        return None
+
+    forwarded = body.split(marker, 1)[1]
+
+    match = re.search(
+        r"From:\s*(.+?)\r?\n"
+        r"Date:\s*(.+?)\r?\n"
+        r"Subject:\s*(.+?)\r?\n"
+        r"To:\s*(.+?)\r?\n"
+        r"\r?\n"
+        r"(.*)",
+        forwarded,
+        re.DOTALL,
+    )
+
+    if not match:
+        return None
+
+    new_email = EmailMessage()
+
+    new_email["From"] = match.group(1).strip()
+    new_email["Date"] = match.group(2).strip()
+    new_email["Subject"] = match.group(3).strip()
+    new_email["To"] = match.group(4).strip()
+
+    message = match.group(5).strip()
+
+    new_email.set_content(message)
+
+    html_message = message.replace("&", "&amp;")
+    html_message = html_message.replace("<", "&lt;")
+    html_message = html_message.replace(">", "&gt;")
+    html_message = html_message.replace("\n", "<br>\n")
+
+    new_email.add_alternative(
+        f"<html><body>{html_message}</body></html>",
+        subtype="html"
+    )
+
+    buffer = BytesIO()
+
+    BytesGenerator(
+        buffer,
+        policy=policy.default
+    ).flatten(new_email)
+
+    return buffer.getvalue()
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", ".."))
@@ -17,7 +78,6 @@ load_dotenv(dotenv_path=ENV_PATH)
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
 EMAIL_USER = os.environ["EMAIL_USER"]
 EMAIL_PASS = os.environ["EMAIL_PASS"]
-print(EMAIL_USER, EMAIL_PASS)
 mail.login(EMAIL_USER, EMAIL_PASS)
 
 mail.select("INBOX")
@@ -40,8 +100,9 @@ while True:
 
         for response_part in msg_data:
             if isinstance(response_part, tuple):
+                raw_email = response_part[1]
                 msg = message_from_bytes(
-                    response_part[1],
+                    raw_email,
                     policy=policy.default
                 )
 
@@ -71,8 +132,12 @@ while True:
                         break
 
                 if original_eml is None:
-                    print(f"No .eml attachment found in email_{idx}; ", "using received email")
-                    original_eml = response_part[1]
+                    forwarded_eml = convert_forwarded_email(msg)
+
+                    if forwarded_eml is not None:
+                        original_eml = forwarded_eml
+                    else:
+                        original_eml = raw_email
 
                 file_path = os.path.join(
                     XDG_CACHE_DIR,
