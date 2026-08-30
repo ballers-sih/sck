@@ -71,13 +71,6 @@ def convert_forwarded_email(msg):
 
 load_dotenv(os.getcwd() + "/.env")
 
-mail = imaplib.IMAP4_SSL("imap.gmail.com")
-EMAIL_USER = os.environ["EMAIL_USER"]
-EMAIL_PASS = os.environ["EMAIL_PASS"]
-mail.login(EMAIL_USER, EMAIL_PASS)
-
-mail.select("INBOX")
-
 xdg_cache = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 XDG_CACHE_DIR = os.path.join(xdg_cache, "sck_app")
 os.makedirs(XDG_CACHE_DIR, exist_ok=True)
@@ -93,6 +86,8 @@ while True:
     EMAIL_USER = os.environ["EMAIL_USER"]
     EMAIL_PASS = os.environ["EMAIL_PASS"]
     mail.login(EMAIL_USER, EMAIL_PASS)
+
+    mail.select("INBOX")
 
     status, messages = mail.search(None, "UNSEEN")
     print("Search status:", status)
@@ -188,5 +183,6 @@ while True:
                 print(f"Report sent to {msg['From']}")
                 mail.store(email_id, "+FLAGS", "\\Seen")
                 idx += 1
+    mail.logout()
 
     time.sleep(30)
