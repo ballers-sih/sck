@@ -59,21 +59,18 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
 
     scam = False
 
-    # A malicious attachment is always a scam.
     for result in attachment_results:
         status, report = result
         if status == 0 and report.get("malicious") is True:
             scam = True
 
-    # A malicious/suspicious URL contributes to the scam decision.
     for _, status, result in url_results:
         if status == 0:
-            if result.get("malicious", 0) > 0:
+            if result.get("malicious", 0) > 2:
                 scam = True
-            elif result.get("suspicious", 0) > 0:
+            elif result.get("suspicious", 0) > 2:
                 scam = True
 
-    # RoBERTa's classification contributes to the scam decision.
     if roberta_result.get("fraud") is True:
         scam = True
 

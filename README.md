@@ -6,42 +6,6 @@ Team: `ballers`
 
 # usage
 
-1. Running the daemon
-
-<details>
-
-<summary>Click to expand: with [Nix](https://nixos.org/download)</summary>
-
-```console
-$ nix build github:ballers-sih/sck
-$ nix develop github:ballers-sih/sck
-$ result/bin/sckd
-```
-
-Remember to pass `VT_API_KEY` (your VirusTotal API Key) using `export` or in a
-`.env`.
-
-</details>
-
-```console
-$ git clone https://github.com/ballers-sih/sck
-$ cd sck
-$ pip install -e .
-$ ./shell-hook.sh
-$ sckd
-```
-
-Remember to pass `VT_API_KEY` (your VirusTotal API Key) using `export` or in a
-`.env`.
-
-2. Running a client
-
-```console
-$ nix build github:ballers-sih/sck
-$ export SCKD_ADDRESS=127.0.0.1
-$ export SCKD_PORT=7079
-```
-
 # components
 
 1. `sckd`, the scam check daemon, exposes a single HTTP endpoint `/submit` which
