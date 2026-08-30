@@ -1,20 +1,17 @@
 import os
-import base64
 import json
-import tempfile
+import base64
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import tempfile
 from dotenv import load_dotenv
 
-from internal import parse_eml, scan_files, scan_url, roberta
-
-HOST = os.environ["SCKD_ADDRESS"]
-PORT = int(os.environ["SCKD_PORT"])
+from internal import parse_eml, roberta, scan_files, scan_url
 
 
 def scan_eml(data: bytes) -> tuple[bool, str]:
     email = parse_eml.parse_eml(data)
 
-    url_results = []
+    url_results = list()
     for url in email.message_links:
         try:
             status, result = scan_url.scan_url(url)
@@ -22,40 +19,26 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
         except Exception as e:
             url_results.append((url, 1, {"error": str(e)}))
 
-    attachment_results = []
-
+    attachment_results = list()
     with tempfile.TemporaryDirectory() as tmpdir:
-        paths = []
-
+        paths = list()
         for i, attachment in enumerate(email.attachments):
             try:
                 data = base64.b64decode(attachment)
             except Exception as e:
-                attachment_results.append(
-                    {
-                        "file": f"attachment-{i}",
-                        "error": f"invalid base64: {e}",
-                    }
-                )
+                attachment_results.append((1, {"file": f"attachment-{i}", "error": f"invalid base64: {e}"}))
                 continue
 
             path = f"{tmpdir}/attachment-{i}"
             with open(path, "wb") as file:
                 file.write(data)
-
             paths.append(path)
-
         attachment_results = scan_files.scan_files(paths)
 
     try:
-        roberta_result = roberta.scan_email(
-            email.subject,
-            email.message,
-        )
+        roberta_result = roberta.scan_email(email.subject, email.message)
     except Exception as e:
-        roberta_result = {
-            "error": str(e),
-        }
+        roberta_result = {"error": str(e)}
 
     scam = False
 
@@ -74,64 +57,62 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
     if roberta_result.get("fraud") is True:
         scam = True
 
-    report_lines = [
-        f"From: {email.sender}",
-        f"Subject: {email.subject}",
-        "",
-        "=== Message classifier ===",
-    ]
+    report_lines = list()
+
+    report_lines.append(f"Result: {"SCAM" if scam else "CLEAN"}")
+ 
+    report_lines.append("")
+    report_lines.append("AI Classifier:")
 
     if "error" in roberta_result:
-        report_lines.append(f"Error: {roberta_result['error']}")
+        report_lines.append(f"\tError: {roberta_result["error"]}")
     else:
-        report_lines.append(f"Fraud: {roberta_result['fraud']}")
-        report_lines.append(
-            f"Fraud probability: " f"{roberta_result['fraud_probability']:.4f}"
-        )
-        report_lines.append(
-            f"Normal probability: " f"{roberta_result['normal_probability']:.4f}"
-        )
+        report_lines.append(f"\tFraud: {roberta_result["fraud"]}")
+        report_lines.append(f"\tFraud probability: {roberta_result["fraud_probability"] * 100}%")
 
     report_lines.append("")
-    report_lines.append("=== URLs ===")
+    report_lines.append("URLs:")
 
     if not url_results:
-        report_lines.append("No URLs found.")
+        report_lines.append("\tNo URLs found")
 
     for url, status, result in url_results:
-        report_lines.append(f"{url}")
+        report_lines.append(f"\t{url}")
 
         if status != 0:
-            report_lines.append(f"  Error: {result.get('error', 'scan failed')}")
+            report_lines.append(f"\t\tError: {result.get("error", "scan failed")}")
             continue
 
-        report_lines.append(f"  Malicious: {result.get('malicious', 0)}")
-        report_lines.append(f"  Suspicious: {result.get('suspicious', 0)}")
-        report_lines.append(f"  Harmless: {result.get('harmless', 0)}")
-        report_lines.append(f"  Undetected: {result.get('undetected', 0)}")
+        report_lines.append(f"\t\tMalicious: {result.get('malicious', 0)}")
+        report_lines.append(f"\t\tSuspicious: {result.get('suspicious', 0)}")
+        report_lines.append(f"\t\tHarmless: {result.get('harmless', 0)}")
+        report_lines.append(f"\t\tUndetected: {result.get('undetected', 0)}")
 
     report_lines.append("")
-    report_lines.append("=== Attachments ===")
+    report_lines.append("Attachments:")
 
     if not attachment_results:
-        report_lines.append("No attachments found.")
+        report_lines.append("\tNo attachments found.")
 
     for status, result in attachment_results:
         filename = result.get("file", "unknown")
-        report_lines.append(filename)
+        report_lines.append(f"\t{filename}")
 
         if status != 0:
-            report_lines.append(f"  Error: {result.get('error', 'scan failed')}")
+            report_lines.append(f"\t\tError: {result.get('error', 'scan failed')}")
         else:
-            report_lines.append(f"  Malicious: {result.get('malicious', False)}")
+            report_lines.append(f"\t\tMalicious: {result.get('malicious', False)}")
 
     report_lines.append("")
-    report_lines.append(f"=== RESULT: {'SCAM' if scam else 'CLEAN'} ===")
+    report_lines.append(f"From: {email.sender}")
+    report_lines.append(f"Subject: {email.subject}")
+    report_lines.append("")
+    report_lines.append(f"Result: {"SCAM" if scam else "CLEAN"}")
 
     return scam, "\n".join(report_lines)
 
 
-class SCKHandler(BaseHTTPRequestHandler):
+class sckdRequestHandler(BaseHTTPRequestHandler):
     def send_json(self, status: int, data: dict) -> None:
         body = json.dumps(data).encode("utf-8")
 
@@ -144,19 +125,13 @@ class SCKHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         if self.path != "/submit":
-            self.send_json(
-                404,
-                {"error": "not found"},
-            )
+            self.send_json(404, {"error": "not found"})
             return
 
         content_length = self.headers.get("Content-Length")
 
         if content_length is None:
-            self.send_json(
-                400,
-                {"error": "missing Content-Length"},
-            )
+            self.send_json(400, {"error": "missing content length"})
             return
 
         try:
@@ -168,53 +143,30 @@ class SCKHandler(BaseHTTPRequestHandler):
             if not isinstance(content, str):
                 raise ValueError("content must be a string")
 
-            eml = base64.b64decode(
-                content,
-                validate=True,
-            )
+            eml = base64.b64decode(content, validate=True)
         except (ValueError, KeyError, json.JSONDecodeError) as e:
-            self.send_json(
-                400,
-                {"error": str(e)},
-            )
+            self.send_json(400, {"error": str(e)})
             return
 
         try:
             scam, report = scan_eml(eml)
         except Exception as e:
-            self.send_json(
-                500,
-                {"error": str(e)},
-            )
+            self.send_json(500, {"error": str(e)})
             return
 
-        self.send_json(
-            200,
-            {
-                "scam": scam,
-                "report": report,
-            },
-        )
+        self.send_json(200, {"scam": scam, "report": report})
 
     def do_GET(self) -> None:
-        self.send_json(
-            404,
-            {"error": "not found"},
-        )
+        self.send_json(404, {"error": "not found"})
 
-    def log_message(self, format: str, *args: object) -> None:
-        print(format % args)
-
-
-def main() -> None:
+def main():
     load_dotenv()
 
-    server = ThreadingHTTPServer(
-        (HOST, PORT),
-        SCKHandler,
-    )
+    keys = ["VT_API_KEY", "SCKD_ADDRESS", "SCKD_PORT"];
+    ENV = dict(zip(keys, map(lambda k: os.environ[k], keys)))
 
-    print(f"sckd listening on {HOST}:{PORT}")
+    server = ThreadingHTTPServer((ENV["SCKD_ADDRESS"], int(ENV["SCKD_PORT"])), sckdRequestHandler)
+    print(f"sckd listening on {ENV["SCKD_ADDRESS"]}:{ENV["SCKD_PORT"]}")
 
     try:
         server.serve_forever()
@@ -222,7 +174,8 @@ def main() -> None:
         pass
     finally:
         server.server_close()
-
+    
 
 if __name__ == "__main__":
     main()
+

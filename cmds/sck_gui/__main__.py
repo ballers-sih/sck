@@ -693,8 +693,8 @@ def main():
             )
 
             result_label.setStyleSheet("""
-                background-color: #450a0a;
-                color: #fca5a5;
+                background-color: #BF616A;
+                color: #2E3440;
                 border-radius: 8px;
                 padding: 18px;
                 font-size: 21px;
@@ -708,14 +708,13 @@ def main():
             )
 
             result_label.setStyleSheet("""
-                background-color: #052e16;
-                color: #86efac;
+                background-color: #A3BE8C;
+                color: #2E3440;
                 border-radius: 8px;
                 padding: 18px;
                 font-size: 21px;
                 font-weight: bold;
             """)
-
 
         # ----------------------------------------------------
         # EXTRACT EMAIL INFORMATION
@@ -791,8 +790,8 @@ def main():
         )
 
         result_label.setStyleSheet("""
-            background-color: #451a03;
-            color: #fdba74;
+            background-color: #D08770;
+            color: #2E3440;
             border-radius: 8px;
             padding: 18px;
             font-size: 21px;
@@ -846,8 +845,8 @@ def main():
             )
 
             result_label.setStyleSheet("""
-                background-color: #422006;
-                color: #fde68a;
+                background-color: #EBCB8B;
+                color: #2E3440;
                 border-radius: 8px;
                 padding: 18px;
                 font-size: 18px;
@@ -906,12 +905,12 @@ def main():
         # ----------------------------------------------------
 
         result_label.setText(
-            "🔄  ANALYZING EMAIL..."
+            "ANALYZING EMAIL..."
         )
 
         result_label.setStyleSheet("""
-            background-color: #172554;
-            color: #93c5fd;
+            background-color: #2E3440;
+            color: #88C0D0;
             border-radius: 8px;
             padding: 18px;
             font-size: 21px;
