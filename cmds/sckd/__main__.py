@@ -5,14 +5,14 @@ import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from dotenv import load_dotenv
 
-from internal import parse_email, scan_files, scan_url, roberta
+from internal import parse_eml, scan_files, scan_url, roberta
 
 HOST = os.environ["SCKD_ADDRESS"]
 PORT = int(os.environ["SCKD_PORT"])
 
 
 def scan_eml(data: bytes) -> tuple[bool, str]:
-    email = parse_email.parse_eml(data)
+    email = parse_eml.parse_eml(data)
 
     url_results = []
     for url in email.message_links:

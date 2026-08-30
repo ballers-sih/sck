@@ -2,7 +2,7 @@ import os
 import sys
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
-from internal import parse_email
+from internal import parse_eml
 
 MODEL = os.environ["ROBERTA_MODEL"]
 
@@ -40,7 +40,7 @@ def main():
     path = sys.argv[1]
     with open(path, "rb") as file:
         data = file.read()
-    email = parse_email.parse_eml(data)
+    email = parse_eml.parse_eml(data)
     print(scan_email(email.subject, email.message))
 
 
