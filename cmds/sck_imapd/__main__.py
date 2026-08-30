@@ -2,6 +2,9 @@ import imaplib
 import os
 import requests
 from email import message_from_bytes
+from email import policy
+from email.generator import BytesGenerator
+from io import BytesIO
 from dotenv import load_dotenv
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -46,10 +49,17 @@ for idx, email_id in enumerate(email_ids):
                     "disposition=", part.get("Content-Disposition")
                 )
                 filename = part.get_filename()
-                if filename and filename.lower().endswith(".eml"):
+                if (part.get_content_type() == "message/rfc822" or (filename and filename.lower().endswith(".eml"))):
                     print(filename.lower())
-                    original_eml = part.get_payload(decode=True)
+                    original_eml = part.get_payload()
                     print(original_eml)
+                    if isinstance(payload, list) and payload:
+                        nested_msg = payload[0]
+                        buffer = BytesIO()
+                        BytesGenerator(buffer, policy=policy.default).flatten(nested_msg)
+                        original_eml = buffer.getvalue()
+                    else:
+                        original_eml = part.get_payload(decode=True)
                     break
 
             if original_eml is None:
