@@ -168,9 +168,14 @@ while True:
                 smtp_message["Subject"] = "Scam Check Report"
                 smtp_message.set_content(report)
 
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
+                    print('1')
+                    smtp.starttls()
+                    print('2')
                     smtp.login(EMAIL_USER, EMAIL_PASS)
+                    print('3')
                     smtp.send_message(smtp_message)
+                    print('4')
 
                 print(f"Report sent to {msg['From']}")
 
