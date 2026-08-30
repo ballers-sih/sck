@@ -93,12 +93,14 @@ idx = 0
 while True:
     print("Checking Gmail...")
 
-    status, messages = mail.search(None, "ALL")
+    status, messages = mail.search(None, "UNSEEN")
     print("Search status:", status)
     print("Raw messages:", messages)
 
     email_ids = messages[0].split()
     print("Unread emails:", email_ids)
+
+    success_or_not = []
 
     for email_id in email_ids:
         print("current:", email_id)
@@ -163,10 +165,15 @@ while True:
                 report = result["report"]
 
                 smtp_message = EmailMessage()
-                smtp_message["From"] = EMAIL_USER
-                smtp_message["To"] = msg["From"]
-                smtp_message["Subject"] = "Scam Check Report"
-                smtp_message.set_content(report)
+                try:
+                    smtp_message["From"] = EMAIL_USER
+                    smtp_message["To"] = msg["From"]
+                    smtp_message["Subject"] = "Scam Check Report"
+                    smtp_message.set_content(report)
+                except Exception as e:
+                    success_or_not.append("not")
+
+                success_or_not.append("success")
 
                 with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
                     print('1')
@@ -178,7 +185,7 @@ while True:
                     print('4')
 
                 print(f"Report sent to {msg['From']}")
-
+                mail.store(email_id, "+FLAGS", "\\Seen")
                 idx += 1
 
     time.sleep(5)
