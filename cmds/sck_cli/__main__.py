@@ -19,8 +19,8 @@ def submit_email(file_path):
     payload = {"content": encoded_email}
 
     # Get the sckd address and port
-    address = os.getenv("SCKD_ADDRESS", "127.0.0.1")
-    port = os.getenv("SCKD_PORT", "8000")
+    address = os.environ["SCKD_ADDRESS"]
+    port = os.environ["SCKD_PORT"]
 
     url = f"http://{address}:{port}/submit"
 

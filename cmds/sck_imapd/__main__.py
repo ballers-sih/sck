@@ -15,8 +15,8 @@ ENV_PATH = os.path.join(PROJECT_ROOT, ".env")
 load_dotenv(dotenv_path=ENV_PATH)
 
 mail = imaplib.IMAP4_SSL("imap.gmail.com")
-EMAIL_USER = os.environ.get("EMAIL_USER")
-EMAIL_PASS = os.environ.get("EMAIL_PASS")
+EMAIL_USER = os.environ["EMAIL_USER"]
+EMAIL_PASS = os.environ["EMAIL_PASS"]
 print(EMAIL_USER, EMAIL_PASS)
 mail.login(EMAIL_USER, EMAIL_PASS)
 
@@ -26,8 +26,8 @@ xdg_cache = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 XDG_CACHE_DIR = os.path.join(xdg_cache, "sck_app")
 os.makedirs(XDG_CACHE_DIR, exist_ok=True)
 
-SCKD_ADDRESS = os.getenv("SCKD_ADDRESS", "127.0.0.1")
-SCKD_PORT = os.getenv("SCKD_PORT", "8000")
+SCKD_ADDRESS = os.environ["SCKD_ADDRESS"]
+SCKD_PORT = os.environ["SCKD_PORT"]
 SCKD_URL = f"http://{SCKD_ADDRESS}:{SCKD_PORT}/submit"
 
 idx = 0

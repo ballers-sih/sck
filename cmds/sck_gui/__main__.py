@@ -40,15 +40,9 @@ def submit_email(file_path):
         "content": encoded_email
     }
 
-    address = os.getenv(
-        "SCKD_ADDRESS",
-        "127.0.0.1"
-    )
+    address = os.environ["SCKD_ADDRESS"]
 
-    port = os.getenv(
-        "SCKD_PORT",
-        "8000"
-    )
+    port = os.environ["SCKD_PORT"]
 
     url = f"http://{address}:{port}/submit"
 
