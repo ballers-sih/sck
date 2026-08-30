@@ -40,6 +40,14 @@ Team: `ballers`
    original .eml and submits to `sckd` at
    `http://$SCKD_ADDRESS:$SCKD_PORT/submit` and sends the report using SMTP
 
+# showcase
+
+![screenshot 1](./screenshots/1.png)
+
+![screenshot 2](./screenshots/2.png)
+
+![screenshot 3](./screenshots/3.png)
+
 # usage
 
 ## running `sckd`
