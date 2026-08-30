@@ -172,13 +172,13 @@ while True:
                 success_or_not.append("success")
 
                 with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
-                    print('1')
+                    print("1")
                     smtp.starttls()
-                    print('2')
+                    print("2")
                     smtp.login(EMAIL_USER, EMAIL_PASS)
-                    print('3')
+                    print("3")
                     smtp.send_message(smtp_message)
-                    print('4')
+                    print("4")
 
                 print(f"Report sent to {msg['From']}")
                 mail.store(email_id, "+FLAGS", "\\Seen")
