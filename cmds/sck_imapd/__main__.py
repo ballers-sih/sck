@@ -92,10 +92,17 @@ SCKD_URL = f"http://{SCKD_ADDRESS}:{SCKD_PORT}/submit"
 
 idx = 0
 while True:
+    print("Checking Gmail...")
+
     status, messages = mail.search(None, "UNSEEN")
+    print("Search status:", status)
+    print("Raw messages:", messages)
+
     email_ids = messages[0].split()
+    print("Unread emails:", email_ids)
 
     for email_id in email_ids:
+        print("current:", email_id)
         res, msg_data = mail.fetch(email_id, "(RFC822)")
 
         for response_part in msg_data:
