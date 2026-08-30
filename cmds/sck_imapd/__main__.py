@@ -40,12 +40,18 @@ for idx, email_id in enumerate(email_ids):
 
             for part in msg.walk():
                 filename = part.get_filename()
-                if (part.get_content_type() == "message/rfc822" or part.get_content_type() == "application/rfc822" or (filename and filename.lower().endswith(".eml"))):
+                if (
+                    part.get_content_type() == "message/rfc822"
+                    or part.get_content_type() == "application/rfc822"
+                    or (filename and filename.lower().endswith(".eml"))
+                ):
                     payload = part.get_payload()
                     if isinstance(payload, list) and payload:
                         nested_msg = payload[0]
                         buffer = BytesIO()
-                        BytesGenerator(buffer, policy=policy.default).flatten(nested_msg)
+                        BytesGenerator(buffer, policy=policy.default).flatten(
+                            nested_msg
+                        )
                         original_eml = buffer.getvalue()
                     else:
                         original_eml = part.get_payload(decode=True)
@@ -54,22 +60,15 @@ for idx, email_id in enumerate(email_ids):
             if original_eml is None:
                 print(f"No .eml attachment found in email_{idx}")
                 original_eml = response_part[1]
-            
+
             file_path = os.path.join(XDG_CACHE_DIR, f"email_{idx}.eml")
             with open(file_path, "wb") as f:
                 f.write(original_eml)
             with open(file_path, "rb") as f:
                 encoded = base64.b64encode(f.read()).decode("ascii")
-            response = requests.post(
-                SCKD_URL,
-                json={"content": encoded},
-                timeout=120
-            )
+            response = requests.post(SCKD_URL, json={"content": encoded}, timeout=120)
 
             response.raise_for_status()
 
-            print(
-                f"Submitted email_{idx}.eml to sckd: ",
-                f"{response.status_code}"
-            )
+            print(f"Submitted email_{idx}.eml to sckd: ", f"{response.status_code}")
 mail.logout()
