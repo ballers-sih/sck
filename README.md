@@ -49,7 +49,7 @@ Team: `ballers`
 1. run `sckd`
 
    ```console
-   $ nix build github:ballers-sih/sck#sckd
+   $ nix run github:ballers-sih/sck#sckd
    ```
 
    Make sure to pass `$VT_API_KEY`, either in `.env` or by `export`ing it.
