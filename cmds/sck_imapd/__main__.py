@@ -53,7 +53,7 @@ for idx, email_id in enumerate(email_ids):
 
             if original_eml is None:
                 print(f"No .eml attachment found in email_{idx}")
-                continue
+                original_eml = response_part[1]
             
             file_path = os.path.join(XDG_CACHE_DIR, f"email_{idx}.eml")
             with open(file_path, "wb") as f:
