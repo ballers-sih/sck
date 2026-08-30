@@ -89,6 +89,10 @@ SCKD_URL = f"http://{SCKD_ADDRESS}:{SCKD_PORT}/submit"
 idx = 0
 while True:
     print("Checking Gmail...")
+    mail = imaplib.IMAP4_SSL("imap.gmail.com")
+    EMAIL_USER = os.environ["EMAIL_USER"]
+    EMAIL_PASS = os.environ["EMAIL_PASS"]
+    mail.login(EMAIL_USER, EMAIL_PASS)
 
     status, messages = mail.search(None, "UNSEEN")
     print("Search status:", status)
