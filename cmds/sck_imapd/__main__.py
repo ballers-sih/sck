@@ -34,23 +34,12 @@ for idx, email_id in enumerate(email_ids):
     res, msg_data = mail.fetch(email_id, "(RFC822)")
     for response_part in msg_data:
         if isinstance(response_part, tuple):
-            msg = message_from_bytes(response_part[1])
-            print("\n--- EMAIL ---")
-            print("Subject:", msg.get("Subject"))
-            print("From:", msg.get("From"))
-            print("Content-Type:", msg.get_content_type())
+            msg = message_from_bytes(response_part[1], policy=policy.default)
             original_eml = None
 
             for part in msg.walk():
-                print(
-                    "PART:",
-                    "content_type=", part.get_content_type(),
-                    "filename=", part.get_filename(),
-                    "disposition=", part.get("Content-Disposition")
-                )
                 filename = part.get_filename()
-                if (part.get_content_type() == "message/rfc822" or (filename and filename.lower().endswith(".eml"))):
-                    print(filename.lower())
+                if (part.get_content_type() == "message/rfc822" or part.get_content_type() == "application/rfc822" or (filename and filename.lower().endswith(".eml"))):
                     payload = part.get_payload()
                     if isinstance(payload, list) and payload:
                         nested_msg = payload[0]
