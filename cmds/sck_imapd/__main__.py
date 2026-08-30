@@ -51,8 +51,8 @@ for idx, email_id in enumerate(email_ids):
                 filename = part.get_filename()
                 if (part.get_content_type() == "message/rfc822" or (filename and filename.lower().endswith(".eml"))):
                     print(filename.lower())
-                    original_eml = part.get_payload()
-                    print(original_eml)
+                    payload = part.get_payload()
+                    print("Extracted bytes:", len(original_eml))
                     if isinstance(payload, list) and payload:
                         nested_msg = payload[0]
                         buffer = BytesIO()
