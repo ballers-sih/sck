@@ -17,7 +17,8 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
             status, result = scan_url.scan_url(url)
             url_results.append((url, status, result))
         except Exception as e:
-            url_results.append((url, 1, {"error": str(e)}))
+            # url_results.append((url, 1, {"error": str(e)}))
+            pass
 
     attachment_results = list()
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -26,9 +27,9 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
             try:
                 data = base64.b64decode(attachment)
             except Exception as e:
-                attachment_results.append(
-                    (1, {"file": f"attachment-{i}", "error": f"invalid base64: {e}"})
-                )
+                # attachment_results.append(
+                #     (1, {"file": f"attachment-{i}", "error": f"invalid base64: {e}"})
+                # )
                 continue
 
             path = f"{tmpdir}/attachment-{i}"
@@ -81,12 +82,12 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
         report_lines.append("\tNo URLs found")
 
     for url, status, result in url_results:
-        report_lines.append(f"\t{url}")
 
         if status != 0:
-            report_lines.append(f"\t\tError: {result.get("error", "scan failed")}")
+            # report_lines.append(f"\t\tError: {result.get("error", "scan failed")}")
             continue
 
+        report_lines.append(f"\t{url}")
         report_lines.append(f"\t\tMalicious: {result.get('malicious', 0)}")
         report_lines.append(f"\t\tSuspicious: {result.get('suspicious', 0)}")
         report_lines.append(f"\t\tHarmless: {result.get('harmless', 0)}")
@@ -100,11 +101,12 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
 
     for status, result in attachment_results:
         filename = result.get("file", "unknown")
-        report_lines.append(f"\t{filename}")
 
         if status != 0:
-            report_lines.append(f"\t\tError: {result.get('error', 'scan failed')}")
+            # report_lines.append(f"\t\tError: {result.get('error', 'scan failed')}")
+            pass
         else:
+            report_lines.append(f"\t{filename}")
             report_lines.append(f"\t\tMalicious: {result.get('malicious', False)}")
 
     report_lines.append("")
