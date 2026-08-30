@@ -58,11 +58,12 @@ for idx, email_id in enumerate(email_ids):
             with open(file_path, "wb") as f:
                 f.write(original_eml)
             with open(file_path, "rb") as f:
-                response = requests.post(
-                    SCKD_URL,
-                    files={"file": (f"email_{idx}.eml", f, "message/rfc822")},
-                    timeout=120
-                )
+                encoded = base64.b64encode(f.read()).decode("ascii")
+            response = requests.post(
+                SCKD_URL,
+                json={"content": encoded},
+                timeout=120
+            )
 
             response.raise_for_status()
 
