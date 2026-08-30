@@ -1,4 +1,5 @@
 import imaplib
+import smtplib
 import os
 import base64
 import requests
@@ -169,6 +170,20 @@ while True:
                     f"Submitted email_{idx}.eml to sckd: ",
                     response.status_code
                 )
+                result = response.json()
+                report = result["report"]
+
+                smtp_message = EmailMessage()
+                smtp_message["From"] = EMAIL_USER
+                smtp_message["To"] = msg["From"]
+                smtp_message["Subject"] = "Scam Check Report"
+                smtp_message.set_content(report)
+                
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                    smtp.login(EMAIL_USER, EMAIL_PASS)
+                    smtp.send_message(smtp_message)
+
+                print(f"Report sent to {msg['From']}")
 
                 idx += 1
 
