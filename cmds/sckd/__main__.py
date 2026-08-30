@@ -165,7 +165,7 @@ class sckdRequestHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    load_dotenv()
+    load_dotenv(os.getcwd() + "/.env")
 
     keys = ["VT_API_KEY", "SCKD_ADDRESS", "SCKD_PORT"]
     ENV = dict(zip(keys, map(lambda k: os.environ[k], keys)))

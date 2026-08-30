@@ -1,10 +1,3 @@
-set -a
-source .env || true
-set +a
-
-export SCKD_ADDRESS=127.0.0.1
-export SCKD_PORT=7079
-
 export ROBERTA_MODEL="$PWD/.models/roberta-email-fraud-detector"
 hf download cunxin/roberta-email-fraud-detector --local-dir "$ROBERTA_MODEL"
 

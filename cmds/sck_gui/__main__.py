@@ -18,6 +18,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from dotenv import load_dotenv
+
 # ============================================================
 # COMMUNICATE WITH SCKD
 # ============================================================
@@ -98,6 +100,8 @@ class ScanWorker(QThread):
 
 
 def main():
+
+    load_dotenv(os.getcwd() + "/.env")
 
     app = QApplication(sys.argv)
 

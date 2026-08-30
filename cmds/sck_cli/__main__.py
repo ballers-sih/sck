@@ -41,7 +41,7 @@ def submit_email(file_path):
 
 
 def main():
-    load_dotenv()
+    load_dotenv(os.getcwd() + "/.env")
 
     parser = argparse.ArgumentParser(description="Submit an .eml file to sckd.")
 
