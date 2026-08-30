@@ -26,7 +26,9 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
             try:
                 data = base64.b64decode(attachment)
             except Exception as e:
-                attachment_results.append((1, {"file": f"attachment-{i}", "error": f"invalid base64: {e}"}))
+                attachment_results.append(
+                    (1, {"file": f"attachment-{i}", "error": f"invalid base64: {e}"})
+                )
                 continue
 
             path = f"{tmpdir}/attachment-{i}"
@@ -60,7 +62,7 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
     report_lines = list()
 
     report_lines.append(f"Result: {"SCAM" if scam else "CLEAN"}")
- 
+
     report_lines.append("")
     report_lines.append("AI Classifier:")
 
@@ -68,7 +70,9 @@ def scan_eml(data: bytes) -> tuple[bool, str]:
         report_lines.append(f"\tError: {roberta_result["error"]}")
     else:
         report_lines.append(f"\tFraud: {roberta_result["fraud"]}")
-        report_lines.append(f"\tFraud probability: {roberta_result["fraud_probability"] * 100}%")
+        report_lines.append(
+            f"\tFraud probability: {roberta_result["fraud_probability"] * 100}%"
+        )
 
     report_lines.append("")
     report_lines.append("URLs:")
@@ -159,13 +163,16 @@ class sckdRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         self.send_json(404, {"error": "not found"})
 
+
 def main():
     load_dotenv()
 
-    keys = ["VT_API_KEY", "SCKD_ADDRESS", "SCKD_PORT"];
+    keys = ["VT_API_KEY", "SCKD_ADDRESS", "SCKD_PORT"]
     ENV = dict(zip(keys, map(lambda k: os.environ[k], keys)))
 
-    server = ThreadingHTTPServer((ENV["SCKD_ADDRESS"], int(ENV["SCKD_PORT"])), sckdRequestHandler)
+    server = ThreadingHTTPServer(
+        (ENV["SCKD_ADDRESS"], int(ENV["SCKD_PORT"])), sckdRequestHandler
+    )
     print(f"sckd listening on {ENV["SCKD_ADDRESS"]}:{ENV["SCKD_PORT"]}")
 
     try:
@@ -174,8 +181,7 @@ def main():
         pass
     finally:
         server.server_close()
-    
+
 
 if __name__ == "__main__":
     main()
-

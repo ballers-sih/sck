@@ -18,10 +18,10 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-
 # ============================================================
 # COMMUNICATE WITH SCKD
 # ============================================================
+
 
 def submit_email(file_path):
     """
@@ -32,13 +32,9 @@ def submit_email(file_path):
     with open(file_path, "rb") as file:
         email_data = file.read()
 
-    encoded_email = base64.b64encode(
-        email_data
-    ).decode("ascii")
+    encoded_email = base64.b64encode(email_data).decode("ascii")
 
-    payload = {
-        "content": encoded_email
-    }
+    payload = {"content": encoded_email}
 
     address = os.environ["SCKD_ADDRESS"]
 
@@ -46,33 +42,23 @@ def submit_email(file_path):
 
     url = f"http://{address}:{port}/submit"
 
-    data = json.dumps(
-        payload
-    ).encode("utf-8")
+    data = json.dumps(payload).encode("utf-8")
 
     request = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Content-Type": "application/json"
-        },
-        method="POST"
+        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
     )
 
-    with urllib.request.urlopen(
-        request
-    ) as response:
+    with urllib.request.urlopen(request) as response:
 
         response_data = response.read()
 
-    return json.loads(
-        response_data.decode("utf-8")
-    )
+    return json.loads(response_data.decode("utf-8"))
 
 
 # ============================================================
 # WORKER THREAD
 # ============================================================
+
 
 class ScanWorker(QThread):
 
@@ -89,59 +75,39 @@ class ScanWorker(QThread):
 
         try:
 
-            result = submit_email(
-                self.file_path
-            )
+            result = submit_email(self.file_path)
 
-            self.finished.emit(
-                result
-            )
+            self.finished.emit(result)
 
         except FileNotFoundError:
 
-            self.error.emit(
-                "The selected file could not be found."
-            )
+            self.error.emit("The selected file could not be found.")
 
         except urllib.error.URLError as error:
 
-            self.error.emit(
-                f"Could not connect to sckd.\n\n{error}"
-            )
+            self.error.emit(f"Could not connect to sckd.\n\n{error}")
 
         except Exception as error:
 
-            self.error.emit(
-                str(error)
-            )
+            self.error.emit(str(error))
 
 
 # ============================================================
 # MAIN GUI
 # ============================================================
 
+
 def main():
 
-    app = QApplication(
-        sys.argv
-    )
+    app = QApplication(sys.argv)
 
     window = QWidget()
 
-    window.setWindowTitle(
-        "Scam Check"
-    )
+    window.setWindowTitle("Scam Check")
 
-    window.resize(
-        950,
-        750
-    )
+    window.resize(950, 750)
 
-    window.setMinimumSize(
-        750,
-        600
-    )
-
+    window.setMinimumSize(750, 600)
 
     # ========================================================
     # STYLES
@@ -286,54 +252,33 @@ def main():
         }
     """)
 
-
     # ========================================================
     # MAIN LAYOUT
     # ========================================================
 
     main_layout = QVBoxLayout()
 
-    main_layout.setContentsMargins(
-        35,
-        30,
-        35,
-        30
-    )
+    main_layout.setContentsMargins(35, 30, 35, 30)
 
-    main_layout.setSpacing(
-        18
-    )
-
+    main_layout.setSpacing(18)
 
     # ========================================================
     # HEADER
     # ========================================================
 
-    title = QLabel(
-        "SCAM CHECK"
-    )
+    title = QLabel("SCAM CHECK")
 
-    title.setObjectName(
-        "title"
-    )
+    title.setObjectName("title")
 
     subtitle = QLabel(
-        "Analyze suspicious emails for scams, "
-        "malicious links and attachments."
+        "Analyze suspicious emails for scams, " "malicious links and attachments."
     )
 
-    subtitle.setObjectName(
-        "subtitle"
-    )
+    subtitle.setObjectName("subtitle")
 
-    main_layout.addWidget(
-        title
-    )
+    main_layout.addWidget(title)
 
-    main_layout.addWidget(
-        subtitle
-    )
-
+    main_layout.addWidget(subtitle)
 
     # ========================================================
     # FILE CARD
@@ -341,85 +286,45 @@ def main():
 
     file_card = QFrame()
 
-    file_card.setObjectName(
-        "card"
-    )
+    file_card.setObjectName("card")
 
     file_layout = QVBoxLayout()
 
-    file_layout.setContentsMargins(
-        20,
-        20,
-        20,
-        20
-    )
+    file_layout.setContentsMargins(20, 20, 20, 20)
 
-    file_layout.setSpacing(
-        12
-    )
+    file_layout.setSpacing(12)
 
-    file_title = QLabel(
-        "EMAIL FILE"
-    )
+    file_title = QLabel("EMAIL FILE")
 
-    file_title.setObjectName(
-        "section_title"
-    )
+    file_title.setObjectName("section_title")
 
-    file_layout.addWidget(
-        file_title
-    )
-
+    file_layout.addWidget(file_title)
 
     # File selection row
 
     file_row = QHBoxLayout()
 
-    file_row.setSpacing(
-        10
-    )
+    file_row.setSpacing(10)
 
-    file_label = QLabel(
-        "No .eml file selected"
-    )
+    file_label = QLabel("No .eml file selected")
 
-    file_label.setObjectName(
-        "file_label"
-    )
+    file_label.setObjectName("file_label")
 
-    file_label.setWordWrap(
-        True
-    )
+    file_label.setWordWrap(True)
 
-    browse_button = QPushButton(
-        "Browse"
-    )
+    browse_button = QPushButton("Browse")
 
-    browse_button.setObjectName(
-        "browse_button"
-    )
+    browse_button.setObjectName("browse_button")
 
-    file_row.addWidget(
-        file_label,
-        1
-    )
+    file_row.addWidget(file_label, 1)
 
-    file_row.addWidget(
-        browse_button
-    )
+    file_row.addWidget(browse_button)
 
-    file_layout.addLayout(
-        file_row
-    )
+    file_layout.addLayout(file_row)
 
-    file_card.setLayout(
-        file_layout
-    )
+    file_card.setLayout(file_layout)
 
-    main_layout.addWidget(
-        file_card
-    )
-
+    main_layout.addWidget(file_card)
 
     # ========================================================
     # BUTTONS
@@ -427,44 +332,23 @@ def main():
 
     button_row = QHBoxLayout()
 
-    button_row.setSpacing(
-        10
-    )
+    button_row.setSpacing(10)
 
-    check_button = QPushButton(
-        "CHECK EMAIL"
-    )
+    check_button = QPushButton("CHECK EMAIL")
 
-    check_button.setObjectName(
-        "check_button"
-    )
+    check_button.setObjectName("check_button")
 
-    clear_button = QPushButton(
-        "CLEAR"
-    )
+    clear_button = QPushButton("CLEAR")
 
-    clear_button.setObjectName(
-        "clear_button"
-    )
+    clear_button.setObjectName("clear_button")
 
-    clear_button.setEnabled(
-        False
-    )
+    clear_button.setEnabled(False)
 
-    button_row.addWidget(
-        check_button,
-        4
-    )
+    button_row.addWidget(check_button, 4)
 
-    button_row.addWidget(
-        clear_button,
-        1
-    )
+    button_row.addWidget(clear_button, 1)
 
-    main_layout.addLayout(
-        button_row
-    )
-
+    main_layout.addLayout(button_row)
 
     # ========================================================
     # RESULT CARD
@@ -472,100 +356,53 @@ def main():
 
     result_card = QFrame()
 
-    result_card.setObjectName(
-        "card"
-    )
+    result_card.setObjectName("card")
 
     result_layout = QVBoxLayout()
 
-    result_layout.setContentsMargins(
-        20,
-        20,
-        20,
-        20
-    )
+    result_layout.setContentsMargins(20, 20, 20, 20)
 
-    result_layout.setSpacing(
-        12
-    )
+    result_layout.setSpacing(12)
 
-    result_title = QLabel(
-        "ANALYSIS RESULT"
-    )
+    result_title = QLabel("ANALYSIS RESULT")
 
-    result_title.setObjectName(
-        "section_title"
-    )
+    result_title.setObjectName("section_title")
 
-    result_layout.addWidget(
-        result_title
-    )
-
+    result_layout.addWidget(result_title)
 
     # Main result
 
-    result_label = QLabel(
-        "Ready to analyze"
-    )
+    result_label = QLabel("Ready to analyze")
 
-    result_label.setObjectName(
-        "result"
-    )
+    result_label.setObjectName("result")
 
-    result_label.setAlignment(
-        Qt.AlignmentFlag.AlignCenter
-    )
+    result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    result_layout.addWidget(
-        result_label
-    )
-
+    result_layout.addWidget(result_label)
 
     # Email information
 
-    email_info = QLabel(
-        "Select an .eml file to begin."
-    )
+    email_info = QLabel("Select an .eml file to begin.")
 
-    email_info.setObjectName(
-        "email_info"
-    )
+    email_info.setObjectName("email_info")
 
-    email_info.setWordWrap(
-        True
-    )
+    email_info.setWordWrap(True)
 
-    result_layout.addWidget(
-        email_info
-    )
-
+    result_layout.addWidget(email_info)
 
     # Detailed report
 
     report_box = QTextEdit()
 
-    report_box.setReadOnly(
-        True
-    )
+    report_box.setReadOnly(True)
 
-    report_box.setPlaceholderText(
-        "The detailed analysis report will appear here."
-    )
+    report_box.setPlaceholderText("The detailed analysis report will appear here.")
 
-    result_layout.addWidget(
-        report_box,
-        1
-    )
+    result_layout.addWidget(report_box, 1)
 
-    result_card.setLayout(
-        result_layout
-    )
+    result_card.setLayout(result_layout)
 
-    main_layout.addWidget(
-        result_card,
-        1
-    )
-
+    main_layout.addWidget(result_card, 1)
 
     # ========================================================
     # STATE
@@ -574,7 +411,6 @@ def main():
     selected_file = None
 
     worker = None
-
 
     # ========================================================
     # BROWSE
@@ -585,10 +421,7 @@ def main():
         nonlocal selected_file
 
         file_path, _ = QFileDialog.getOpenFileName(
-            window,
-            "Select an email file",
-            "",
-            "Email files (*.eml)"
+            window, "Select an email file", "", "Email files (*.eml)"
         )
 
         if not file_path:
@@ -597,33 +430,19 @@ def main():
 
         selected_file = file_path
 
-        file_label.setText(
-            file_path
-        )
+        file_label.setText(file_path)
 
-        result_label.setText(
-            "Ready to analyze"
-        )
+        result_label.setText("Ready to analyze")
 
-        result_label.setStyleSheet(
-            ""
-        )
+        result_label.setStyleSheet("")
 
-        email_info.setText(
-            "File selected. Click CHECK EMAIL to begin."
-        )
+        email_info.setText("File selected. Click CHECK EMAIL to begin.")
 
         report_box.clear()
 
-        clear_button.setEnabled(
-            True
-        )
+        clear_button.setEnabled(True)
 
-
-    browse_button.clicked.connect(
-        choose_file
-    )
-
+    browse_button.clicked.connect(choose_file)
 
     # ========================================================
     # CLEAR
@@ -635,33 +454,19 @@ def main():
 
         selected_file = None
 
-        file_label.setText(
-            "No .eml file selected"
-        )
+        file_label.setText("No .eml file selected")
 
-        result_label.setText(
-            "Ready to analyze"
-        )
+        result_label.setText("Ready to analyze")
 
-        result_label.setStyleSheet(
-            ""
-        )
+        result_label.setStyleSheet("")
 
-        email_info.setText(
-            "Select an .eml file to begin."
-        )
+        email_info.setText("Select an .eml file to begin.")
 
         report_box.clear()
 
-        clear_button.setEnabled(
-            False
-        )
+        clear_button.setEnabled(False)
 
-
-    clear_button.clicked.connect(
-        clear_results
-    )
-
+    clear_button.clicked.connect(clear_results)
 
     # ========================================================
     # SCAN FINISHED
@@ -671,16 +476,9 @@ def main():
 
         nonlocal worker
 
-        scam = result.get(
-            "scam",
-            False
-        )
+        scam = result.get("scam", False)
 
-        report = result.get(
-            "report",
-            "No report was returned."
-        )
-
+        report = result.get("report", "No report was returned.")
 
         # ----------------------------------------------------
         # SCAM RESULT
@@ -688,9 +486,7 @@ def main():
 
         if scam:
 
-            result_label.setText(
-                "⚠  SCAM DETECTED"
-            )
+            result_label.setText("⚠  SCAM DETECTED")
 
             result_label.setStyleSheet("""
                 background-color: #BF616A;
@@ -703,9 +499,7 @@ def main():
 
         else:
 
-            result_label.setText(
-                "✓  EMAIL APPEARS CLEAN"
-            )
+            result_label.setText("✓  EMAIL APPEARS CLEAN")
 
             result_label.setStyleSheet("""
                 background-color: #A3BE8C;
@@ -728,54 +522,33 @@ def main():
 
             if line.startswith("From:"):
 
-                sender = line[
-                    len("From:"):
-                ].strip()
+                sender = line[len("From:") :].strip()
 
             elif line.startswith("Subject:"):
 
-                subject = line[
-                    len("Subject:"):
-                ].strip()
+                subject = line[len("Subject:") :].strip()
 
-
-        email_info.setText(
-            f"<b>Sender:</b> {sender}<br>"
-            f"<b>Subject:</b> {subject}"
-        )
-
+        email_info.setText(f"<b>Sender:</b> {sender}<br>" f"<b>Subject:</b> {subject}")
 
         # ----------------------------------------------------
         # REPORT
         # ----------------------------------------------------
 
-        report_box.setText(
-            report
-        )
-
+        report_box.setText(report)
 
         # ----------------------------------------------------
         # RESTORE BUTTONS
         # ----------------------------------------------------
 
-        check_button.setEnabled(
-            True
-        )
+        check_button.setEnabled(True)
 
-        browse_button.setEnabled(
-            True
-        )
+        browse_button.setEnabled(True)
 
-        clear_button.setEnabled(
-            True
-        )
+        clear_button.setEnabled(True)
 
-        check_button.setText(
-            "CHECK EMAIL"
-        )
+        check_button.setText("CHECK EMAIL")
 
         worker = None
-
 
     # ========================================================
     # SCAN ERROR
@@ -785,9 +558,7 @@ def main():
 
         nonlocal worker
 
-        result_label.setText(
-            "⚠  SCAN ERROR"
-        )
+        result_label.setText("⚠  SCAN ERROR")
 
         result_label.setStyleSheet("""
             background-color: #D08770;
@@ -798,32 +569,19 @@ def main():
             font-weight: bold;
         """)
 
-        email_info.setText(
-            "The email could not be analyzed."
-        )
+        email_info.setText("The email could not be analyzed.")
 
-        report_box.setText(
-            message
-        )
+        report_box.setText(message)
 
-        check_button.setEnabled(
-            True
-        )
+        check_button.setEnabled(True)
 
-        browse_button.setEnabled(
-            True
-        )
+        browse_button.setEnabled(True)
 
-        clear_button.setEnabled(
-            True
-        )
+        clear_button.setEnabled(True)
 
-        check_button.setText(
-            "CHECK EMAIL"
-        )
+        check_button.setText("CHECK EMAIL")
 
         worker = None
-
 
     # ========================================================
     # CHECK EMAIL
@@ -833,16 +591,13 @@ def main():
 
         nonlocal worker
 
-
         # ----------------------------------------------------
         # No file selected
         # ----------------------------------------------------
 
         if selected_file is None:
 
-            result_label.setText(
-                "Please select an .eml file first."
-            )
+            result_label.setText("Please select an .eml file first.")
 
             result_label.setStyleSheet("""
                 background-color: #EBCB8B;
@@ -853,60 +608,39 @@ def main():
                 font-weight: bold;
             """)
 
-            email_info.setText(
-                "Use the Browse button to select an email file."
-            )
+            email_info.setText("Use the Browse button to select an email file.")
 
             return
-
 
         # ----------------------------------------------------
         # Check extension
         # ----------------------------------------------------
 
-        if not selected_file.lower().endswith(
-            ".eml"
-        ):
+        if not selected_file.lower().endswith(".eml"):
 
-            result_label.setText(
-                "Invalid file type"
-            )
+            result_label.setText("Invalid file type")
 
-            email_info.setText(
-                "Please select an .eml email file."
-            )
+            email_info.setText("Please select an .eml email file.")
 
             return
-
 
         # ----------------------------------------------------
         # Disable controls
         # ----------------------------------------------------
 
-        check_button.setEnabled(
-            False
-        )
+        check_button.setEnabled(False)
 
-        browse_button.setEnabled(
-            False
-        )
+        browse_button.setEnabled(False)
 
-        clear_button.setEnabled(
-            False
-        )
+        clear_button.setEnabled(False)
 
-        check_button.setText(
-            "ANALYZING EMAIL..."
-        )
-
+        check_button.setText("ANALYZING EMAIL...")
 
         # ----------------------------------------------------
         # Loading state
         # ----------------------------------------------------
 
-        result_label.setText(
-            "ANALYZING EMAIL..."
-        )
+        result_label.setText("ANALYZING EMAIL...")
 
         result_label.setStyleSheet("""
             background-color: #2E3440;
@@ -917,51 +651,33 @@ def main():
             font-weight: bold;
         """)
 
-        email_info.setText(
-            "Scam Check is analyzing this email. "
-            "Please wait..."
-        )
+        email_info.setText("Scam Check is analyzing this email. " "Please wait...")
 
         report_box.clear()
-
 
         # ----------------------------------------------------
         # Start worker
         # ----------------------------------------------------
 
-        worker = ScanWorker(
-            selected_file
-        )
+        worker = ScanWorker(selected_file)
 
-        worker.finished.connect(
-            scan_finished
-        )
+        worker.finished.connect(scan_finished)
 
-        worker.error.connect(
-            scan_error
-        )
+        worker.error.connect(scan_error)
 
         worker.start()
 
-
-    check_button.clicked.connect(
-        check_email
-    )
-
+    check_button.clicked.connect(check_email)
 
     # ========================================================
     # SHOW WINDOW
     # ========================================================
 
-    window.setLayout(
-        main_layout
-    )
+    window.setLayout(main_layout)
 
     window.show()
 
-    sys.exit(
-        app.exec()
-    )
+    sys.exit(app.exec())
 
 
 # ============================================================

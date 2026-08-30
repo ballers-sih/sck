@@ -12,6 +12,7 @@ from email.message import EmailMessage
 from io import BytesIO
 from dotenv import load_dotenv
 
+
 def convert_forwarded_email(msg):
     body = ""
 
@@ -58,18 +59,15 @@ def convert_forwarded_email(msg):
     html_message = html_message.replace("\n", "<br>\n")
 
     new_email.add_alternative(
-        f"<html><body>{html_message}</body></html>",
-        subtype="html"
+        f"<html><body>{html_message}</body></html>", subtype="html"
     )
 
     buffer = BytesIO()
 
-    BytesGenerator(
-        buffer,
-        policy=policy.default
-    ).flatten(new_email)
+    BytesGenerator(buffer, policy=policy.default).flatten(new_email)
 
     return buffer.getvalue()
+
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", ".."))
@@ -109,10 +107,7 @@ while True:
         for response_part in msg_data:
             if isinstance(response_part, tuple):
                 raw_email = response_part[1]
-                msg = message_from_bytes(
-                    raw_email,
-                    policy=policy.default
-                )
+                msg = message_from_bytes(raw_email, policy=policy.default)
 
                 original_eml = None
 
@@ -131,7 +126,9 @@ while True:
 
                             buffer = BytesIO()
 
-                            BytesGenerator(buffer, policy=policy.default).flatten(nested_msg)
+                            BytesGenerator(buffer, policy=policy.default).flatten(
+                                nested_msg
+                            )
 
                             original_eml = buffer.getvalue()
                         else:
@@ -147,10 +144,7 @@ while True:
                     else:
                         original_eml = raw_email
 
-                file_path = os.path.join(
-                    XDG_CACHE_DIR,
-                    f"email_{idx}.eml"
-                )
+                file_path = os.path.join(XDG_CACHE_DIR, f"email_{idx}.eml")
 
                 with open(file_path, "wb") as f:
                     f.write(original_eml)
@@ -159,17 +153,12 @@ while True:
                     encoded = base64.b64encode(f.read()).decode("ascii")
 
                 response = requests.post(
-                    SCKD_URL,
-                    json={"content": encoded},
-                    timeout=120
+                    SCKD_URL, json={"content": encoded}, timeout=120
                 )
 
                 response.raise_for_status()
 
-                print(
-                    f"Submitted email_{idx}.eml to sckd: ",
-                    response.status_code
-                )
+                print(f"Submitted email_{idx}.eml to sckd: ", response.status_code)
                 result = response.json()
                 report = result["report"]
 
@@ -178,7 +167,7 @@ while True:
                 smtp_message["To"] = msg["From"]
                 smtp_message["Subject"] = "Scam Check Report"
                 smtp_message.set_content(report)
-                
+
                 with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
                     smtp.login(EMAIL_USER, EMAIL_PASS)
                     smtp.send_message(smtp_message)
